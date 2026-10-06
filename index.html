@@ -256,6 +256,7 @@
 
   .seg-bar.future { color:#fff; }               /* filled but lighter via alpha overlay */
 
+  .seg-bar .seg-symbol { font-size:13px; font-weight:700; margin-right:6px; flex-shrink:0; line-height:1; }
   .seg-bar .seg-name { overflow:hidden; text-overflow:ellipsis; }
 
   .seg-bar .seg-dur { opacity:0.8; font-weight:400; margin-left:6px; flex-shrink:0; }
@@ -536,6 +537,7 @@
 const PHASES = ['Feasibility & Planning','Design / Pre-Con','Construction','Post-Construction'];
 
 const PHASE_SHORT = ['Feasibility','Design','Construction','Post-Con'];
+const PHASE_SYMBOLS = ['◆','▱','▲','✓'];
 
 // Phase colors: a single green-family ramp so a project's line reads as one
 
@@ -867,7 +869,7 @@ function durationOptionsHTML(){
 
 function populateSelects(){
 
-  document.getElementById('f-phase').innerHTML = PHASES.map(p=>`<option value="${p}">${p}</option>`).join('');
+  document.getElementById('f-phase').innerHTML = '<option value="">— not set —</option>' + PHASES.map(p=>`<option value="${p}">${p}</option>`).join('');
 
 }
 
@@ -1068,7 +1070,7 @@ function renderRoadmap(existingPlan){
 
     if(entry.start){ startSel.value = entry.start; }
 
-    else if(ph === curPhase){
+    else if(curPhase && ph === curPhase){
       const cur = currentQuarter();
       const idx = Math.max(qIndex(cur.q,cur.y), qIndex(4,2026));
       const y = Math.floor(idx/4), q=(idx%4)+1;
@@ -1095,7 +1097,7 @@ function openPanel(project){
 
   document.getElementById('f-name').value = project ? project.name : '';
 
-  document.getElementById('f-phase').value = project ? project.phase : PHASES[0];
+  document.getElementById('f-phase').value = project ? (project.phase || '') : '';
 
   document.getElementById('f-notes').value = project ? (project.notes||'') : '';
 
@@ -1131,6 +1133,8 @@ async function saveCurrent(){
   if(!name || locations.length===0){ alert('Project name and at least one location are required.'); return; }
 
   const phase = document.getElementById('f-phase').value;
+
+  if(!phase){ alert('Please choose a current phase.'); return; }
 
   const plan = collectPlanFromForm();
 
@@ -1259,7 +1263,7 @@ function renderLegend(){
 
   if(viewMode==='project'){
 
-    let keys = PHASES.map((ph,i)=>`<div class="key"><span class="seg" style="background:${PHASE_COLORS[i]}"></span> ${ph}</div>`).join('');
+    let keys = PHASES.map((ph,i)=>`<div class="key"><span class="seg" style="background:${PHASE_COLORS[i]}"></span><strong style="width:14px;text-align:center">${PHASE_SYMBOLS[i]}</strong> ${ph}</div>`).join('');
 
     slot.innerHTML = `<div class="legend"><div class="phase-legend">
 
@@ -1573,7 +1577,7 @@ function renderProjectGrid(){
 
       const durLabel = s.dur>1 ? `<span class="seg-dur">${s.dur}q</span>` : '';
 
-      const label = width > 54 ? `<span class="seg-name">${PHASE_SHORT[pi]}</span>${durLabel}` : '';
+      const label = `<span class="seg-symbol" aria-hidden="true">${PHASE_SYMBOLS[pi]}</span>${width > 72 ? `<span class="seg-name">${PHASE_SHORT[pi]}</span>${durLabel}` : ''}`;
 
       segs += `<div class="seg-bar ${isFuture?'future':''}" data-pid="${p.id}" data-phase="${s.phase}" data-start="${s.start}" data-dur="${s.dur}" style="left:${left}px;width:${width}px;background:${bg};color:${txt};${ring}"
 
@@ -1609,7 +1613,7 @@ function renderProjectGrid(){
 
         <span class="swatch" style="background:${col}"></span>
 
-        <span class="meta"><span class="pname">${p.name}</span><span class="ploc">${projectLocations(p).join(', ')}${resourceNamesForProject(p).length ? ' · ' + resourceNamesForProject(p).join(', ') : ''}</span></span>
+        <span class="meta" title="${projectLocations(p).join(', ')}${resourceNamesForProject(p).length ? ' • Resources: ' + resourceNamesForProject(p).join(', ') : ''}"><span class="pname">${p.name}</span><span class="ploc">${projectLocations(p).join(', ')}</span></span>
 
       </div>
 

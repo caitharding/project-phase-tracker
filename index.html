@@ -18,25 +18,25 @@
 
   :root{
 
-    --bg: #EDF1EF;
+    --bg: #EEF3F8;
 
     --surface: #FFFFFF;
 
-    --ink: #1F2A24;
+    --ink: #17233A;
 
-    --ink-soft: #5B685F;
+    --ink-soft: #5B6B82;
 
-    --ink-faint: #8B978E;
+    --ink-faint: #8B99AB;
 
-    --line: #D3DBD5;
+    --line: #CFD9E6;
 
-    --line-soft: #E4E9E4;
+    --line-soft: #E4EAF1;
 
-    --accent: #3B6E64;
+    --accent: #173F73;
 
-    --accent-soft: #DCE8E4;
+    --accent-soft: #DCE7F5;
 
-    --danger: #A15843;
+    --danger: #A34D5D;
 
     --radius: 10px;
 
@@ -68,7 +68,7 @@
 
   .add-btn { background:var(--accent); color:#fff; border:none; border-radius:var(--radius); padding:10px 14px; font-size:13.5px; font-weight:500; cursor:pointer; font-family:var(--font-body); }
 
-  .add-btn:hover { background:#325f56; }
+  .add-btn:hover { background:#12335f; }
 
   .rail-section h2 { font-size:12px; color:var(--ink-soft); margin:0 0 10px; font-weight:500; }
 
@@ -147,6 +147,18 @@
   .resource-remove { border:none; background:none; color:var(--danger); font-size:18px; cursor:pointer; line-height:1; padding:2px 4px; }
   .resource-empty { color:var(--ink-faint); font-size:11.5px; padding:3px 0 8px; }
 
+  .multi-select { border:1px solid var(--line); border-radius:8px; background:var(--surface); overflow:hidden; }
+  .multi-select-list { max-height:180px; overflow:auto; padding:6px; }
+  .multi-region { font-size:10.5px; color:var(--ink-faint); font-weight:600; letter-spacing:.02em; padding:7px 6px 4px; }
+  .multi-option { display:flex; align-items:center; gap:8px; padding:6px; border-radius:6px; cursor:pointer; font-size:12.5px; }
+  .multi-option:hover { background:var(--bg); }
+  .multi-option input { width:auto; margin:0; }
+  .multi-custom { display:flex; gap:8px; padding:8px; border-top:1px solid var(--line-soft); }
+  .multi-custom input { flex:1; min-width:0; }
+  .multi-custom button { border:1px solid var(--line); background:var(--surface); color:var(--accent); border-radius:6px; padding:7px 9px; cursor:pointer; }
+  .selected-locations { display:flex; flex-wrap:wrap; gap:6px; margin-top:7px; }
+  .location-chip { display:inline-flex; align-items:center; gap:5px; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:4px 8px; font-size:11.5px; }
+
 
 
   /* ---- Main ---- */
@@ -201,9 +213,9 @@
 
   .proj-row { display:flex; align-items:stretch; position:relative; height:56px; }
 
-  .proj-row:hover .plane-bg { background:rgba(59,110,100,0.04); }
+  .proj-row:hover .plane-bg { background:rgba(23,63,115,0.05); }
 
-  .proj-row.selected .plane-bg { background:rgba(59,110,100,0.09); }
+  .proj-row.selected .plane-bg { background:rgba(23,63,115,0.10); }
 
   .proj-head { width:var(--label-w); flex-shrink:0; padding:0 14px 0 0; display:flex; align-items:center; gap:9px; position:sticky; left:0; z-index:4; background:var(--bg); cursor:pointer; }
 
@@ -411,7 +423,7 @@
 
         <h2 id="topTitle">Timeline by project</h2>
 
-        <p id="topDesc">One line per project, left to right, split into phases. The green line marks this quarter. Click a project to open it.</p>
+        <p id="topDesc">One line per project, left to right, split into phases. Drag a phase bar left or right to move its start quarter. Click a project to open it.</p>
 
       </div>
 
@@ -461,11 +473,16 @@
 
     <div class="field">
 
-      <label>Location <span class="req">*</span></label>
+      <label>Locations <span class="req">*</span></label>
 
-      <select id="f-location-select" onchange="onLocationSelectChange()"></select>
-
-      <input id="f-location-custom" type="text" placeholder="Type a location" style="display:none;margin-top:8px;">
+      <div class="multi-select">
+        <div class="multi-select-list" id="locationMultiList"></div>
+        <div class="multi-custom">
+          <input id="f-location-custom" type="text" placeholder="Add another location">
+          <button type="button" onclick="addCustomLocation()">Add</button>
+        </div>
+      </div>
+      <div class="selected-locations" id="selectedLocations"></div>
 
     </div>
 
@@ -483,7 +500,7 @@
 
       <div class="rm-head">Phase timeline</div>
 
-      <div class="rm-sub">Set the start quarter and how many quarters each phase is expected to run. The current phase and everything after it appears here.</div>
+      <div class="rm-sub">Set the start quarter and duration here, or drag phase bars directly across the timeline after saving.</div>
 
       <div class="rm-cols"><span class="c-phase">Phase</span><span class="c-start">Starts</span><span class="c-dur">Quarters</span></div>
 
@@ -540,11 +557,11 @@ const PHASE_SHORT = ['Feasibility','Design','Construction','Post-Con'];
 
 // per-location palette used for the accent swatch.
 
-const PHASE_COLORS = ['#2F5A50','#5A8478','#8FB0A2','#C2D4CB'];
+const PHASE_COLORS = ['#173F73','#315D8F','#6F94BC','#B5C9DE'];
 
-const PHASE_TEXT   = ['#FFFFFF','#FFFFFF','#20342C','#20342C']; // legible text per phase
+const PHASE_TEXT   = ['#FFFFFF','#FFFFFF','#10243D','#10243D']; // legible text per phase
 
-const LOCATION_PALETTE = ['#3B6E64','#7D4F6D','#A9792C','#48577A','#A15843','#6B7B3F','#5A6670','#B15A4A','#4E7A9C','#8A6B9E','#2E8B7F','#C06C3E','#5D8A3A','#9C4F7A','#3A5FA0','#B08A2E','#6A5ACD','#C0504D','#417B5A','#8B5A2B'];
+const LOCATION_PALETTE = ['#173F73','#275A8E','#3B6EA8','#517FB6','#6A92C0','#315275','#436687','#587A9A','#6D8EAC','#809FB9','#234D7F','#386392','#4D78A4','#638DB5','#7AA1C5','#2B4768','#3E5B7C','#54718F','#6B879F','#829CAF'];
 
 const MAX_DURATION = 12;
 
@@ -570,6 +587,20 @@ function regionOf(location){
 
   return 'Other';
 
+}
+
+
+function projectLocations(p){
+  if(Array.isArray(p.locations) && p.locations.length) return p.locations.filter(Boolean);
+  return p.location ? [p.location] : [];
+}
+
+function primaryLocation(p){
+  return projectLocations(p)[0] || '';
+}
+
+function projectHasLocation(p, name){
+  return projectLocations(p).includes(name);
 }
 
 
@@ -625,6 +656,10 @@ function keyIndex(key){ const p = parseQKey(key); return p ? qIndex(p.q,p.y) : n
 function normalizeProject(p){
 
   if(!Array.isArray(p.resources)) p.resources = [];
+  if(!Array.isArray(p.locations) || !p.locations.length){
+    p.locations = p.location ? [p.location] : [];
+  }
+  p.location = p.locations[0] || p.location || '';
 
   if(!p.plan){
 
@@ -669,43 +704,25 @@ function plannedStops(p){
 
 
 function buildQuarterRange(){
-
   const cur = currentQuarter();
-
-  let minIdx = qIndex(cur.q,cur.y) - 2;
-
-  let maxIdx = qIndex(cur.q,cur.y) + 5;
+  const startIdx = qIndex(4, 2026);
+  let maxIdx = Math.max(startIdx + 7, qIndex(cur.q,cur.y) + 5);
 
   projects.forEach(p=>{
-
     plannedStops(p).forEach(s=>{
-
       const si = keyIndex(s.start);
-
-      minIdx = Math.min(minIdx, si);
-
-      maxIdx = Math.max(maxIdx, si + s.dur - 1);
-
+      if(si != null) maxIdx = Math.max(maxIdx, si + s.dur - 1);
     });
-
   });
 
   const list = [];
-
   const curIdx = qIndex(cur.q,cur.y);
-
-  for(let i=minIdx;i<=maxIdx;i++){
-
+  for(let i=startIdx;i<=maxIdx;i++){
     const y = Math.floor(i/4), q = (i%4)+1;
-
     list.push({q,y,key:qKey(q,y),label:qLabel(q,y),idx:i,isNow:i===curIdx});
-
   }
-
   return list;
-
 }
-
 
 
 function orderedLocations(){
@@ -714,7 +731,7 @@ function orderedLocations(){
 
   REGIONS.forEach(r=>{ r.locations.forEach(loc=>{ if(!list.includes(loc)) list.push(loc); }); });
 
-  const custom = [...new Set(projects.map(p=>p.location).filter(l=>l && !list.includes(l)))].sort();
+  const custom = [...new Set(projects.flatMap(projectLocations).filter(l=>l && !list.includes(l)))].sort();
 
   custom.forEach(loc=> list.push(loc));
 
@@ -724,7 +741,7 @@ function orderedLocations(){
 
 function locationColor(name){
 
-  if(!name) return '#8B978E';
+  if(!name) return '#8B99AB';
 
   const idx = orderedLocations().indexOf(name);
 
@@ -744,7 +761,8 @@ function resourceInitials(name){
 }
 
 function isProjectDimmed(p){
-  if(dimmedLocations.has(p.location)) return true;
+  const locs = projectLocations(p);
+  if(dimmedLocations.size > 0 && (locs.length===0 || locs.every(loc=>dimmedLocations.has(loc)))) return true;
 
   if(dimmedResources.size === 0) return false;
 
@@ -838,23 +856,17 @@ async function fetchFreshProjects(){
 // ---------- option lists ----------
 
 function quarterOptionsHTML(includeNone){
-
-  const cur = currentQuarter();
-
   const opts = [];
+  const startIdx = qIndex(4, 2026);
+  const cur = currentQuarter();
+  const endIdx = Math.max(startIdx + 16, qIndex(cur.q,cur.y) + 16);
 
-  for(let i=-4;i<=16;i++){
-
-    const idx = qIndex(cur.q,cur.y)+i;
-
+  for(let idx=startIdx; idx<=endIdx; idx++){
     const y = Math.floor(idx/4), q=(idx%4)+1;
-
     opts.push(`<option value="${qKey(q,y)}">${qLabel(q,y)}</option>`);
-
   }
 
   return (includeNone ? '<option value="">— not set —</option>' : '') + opts.join('');
-
 }
 
 function durationOptionsHTML(){
@@ -875,76 +887,71 @@ function populateSelects(){
 
 
 
-function buildLocationSelect(currentValue){
+function allAvailableLocations(){
+  const list = [];
+  REGIONS.forEach(r=>r.locations.forEach(loc=>{ if(!list.includes(loc)) list.push(loc); }));
+  projects.flatMap(projectLocations).forEach(loc=>{ if(loc && !list.includes(loc)) list.push(loc); });
+  return list;
+}
 
-  const sel = document.getElementById('f-location-select');
+function buildLocationMulti(currentValues){
+  const selected = new Set(Array.isArray(currentValues) ? currentValues : (currentValues ? [currentValues] : []));
+  const container = document.getElementById('locationMultiList');
+  const known = allAvailableLocations();
+  const custom = known.filter(loc=>regionOf(loc)==='Other');
 
-  const usedCustom = new Set(projects.map(p=>p.location).filter(l=>l && regionOf(l)==='Other'));
-
-  if(currentValue && regionOf(currentValue)==='Other') usedCustom.add(currentValue);
-
-
-
-  let html = '<option value="">— choose a location —</option>';
-
+  let html = '';
   REGIONS.forEach(r=>{
-
-    html += `<optgroup label="${r.name}">`;
-
-    r.locations.forEach(loc=>{ html += `<option value="${escAttr(loc)}">${loc}</option>`; });
-
-    html += '</optgroup>';
-
+    html += `<div class="multi-region">${r.name}</div>`;
+    r.locations.forEach(loc=>{
+      html += `<label class="multi-option"><input type="checkbox" value="${escAttr(loc)}" ${selected.has(loc)?'checked':''} onchange="renderSelectedLocations()"> <span>${loc}</span></label>`;
+    });
   });
 
-  if(usedCustom.size){
-
-    html += '<optgroup label="Other">';
-
-    [...usedCustom].sort().forEach(loc=>{ html += `<option value="${escAttr(loc)}">${loc}</option>`; });
-
-    html += '</optgroup>';
-
+  if(custom.length){
+    html += `<div class="multi-region">Other</div>`;
+    custom.sort().forEach(loc=>{
+      html += `<label class="multi-option"><input type="checkbox" value="${escAttr(loc)}" ${selected.has(loc)?'checked':''} onchange="renderSelectedLocations()"> <span>${loc}</span></label>`;
+    });
   }
 
-  html += '<option value="__custom__">Other… (type a new one)</option>';
-
-  sel.innerHTML = html;
-
-
-
-  const custom = document.getElementById('f-location-custom');
-
-  const isPreset = currentValue && [...sel.options].some(o=>o.value===currentValue);
-
-  if(currentValue && isPreset){ sel.value = currentValue; custom.style.display='none'; custom.value=''; }
-
-  else if(currentValue){ sel.value='__custom__'; custom.style.display='block'; custom.value=currentValue; }
-
-  else { sel.value=''; custom.style.display='none'; custom.value=''; }
-
+  container.innerHTML = html;
+  renderSelectedLocations();
 }
 
-function onLocationSelectChange(){
-
-  const sel = document.getElementById('f-location-select');
-
-  const custom = document.getElementById('f-location-custom');
-
-  if(sel.value === '__custom__'){ custom.style.display='block'; custom.focus(); }
-
-  else { custom.style.display='none'; custom.value=''; }
-
+function getLocationValues(){
+  return [...document.querySelectorAll('#locationMultiList input[type="checkbox"]:checked')].map(x=>x.value);
 }
 
-function getLocationValue(){
+function renderSelectedLocations(){
+  const selected = getLocationValues();
+  const el = document.getElementById('selectedLocations');
+  el.innerHTML = selected.map(loc=>`<span class="location-chip">${loc}</span>`).join('');
+}
 
-  const sel = document.getElementById('f-location-select');
+function addCustomLocation(){
+  const input = document.getElementById('f-location-custom');
+  const value = input.value.trim();
+  if(!value) return;
 
-  if(sel.value === '__custom__') return document.getElementById('f-location-custom').value.trim();
+  const current = getLocationValues();
+  if(!current.includes(value)) current.push(value);
 
-  return sel.value;
+  const knownProjects = projects.map(p=>({ ...p, locations: projectLocations(p) }));
+  buildLocationMulti(current);
+  input.value = '';
 
+  // If brand new, add a checked custom option immediately.
+  if(!allAvailableLocations().includes(value)){
+    const container = document.getElementById('locationMultiList');
+    let other = [...container.querySelectorAll('.multi-region')].find(x=>x.textContent==='Other');
+    if(!other){
+      container.insertAdjacentHTML('beforeend', `<div class="multi-region">Other</div>`);
+    }
+    container.insertAdjacentHTML('beforeend',
+      `<label class="multi-option"><input type="checkbox" value="${escAttr(value)}" checked onchange="renderSelectedLocations()"> <span>${value}</span></label>`);
+    renderSelectedLocations();
+  }
 }
 
 function escAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
@@ -1075,7 +1082,12 @@ function renderRoadmap(existingPlan){
 
     if(entry.start){ startSel.value = entry.start; }
 
-    else if(ph === curPhase){ startSel.value = qKey(currentQuarter().q, currentQuarter().y); }
+    else if(ph === curPhase){
+      const cur = currentQuarter();
+      const idx = Math.max(qIndex(cur.q,cur.y), qIndex(4,2026));
+      const y = Math.floor(idx/4), q=(idx%4)+1;
+      startSel.value = qKey(q,y);
+    }
 
     durSel.value = entry.dur || 1;
 
@@ -1101,7 +1113,7 @@ function openPanel(project){
 
   document.getElementById('f-notes').value = project ? (project.notes||'') : '';
 
-  buildLocationSelect(project ? project.location : '');
+  buildLocationMulti(project ? projectLocations(project) : []);
 
   renderResourceEditor(project ? JSON.parse(JSON.stringify(project.resources||[])) : []);
 
@@ -1127,9 +1139,10 @@ async function saveCurrent(){
 
   const name = document.getElementById('f-name').value.trim();
 
-  const location = getLocationValue();
+  const locations = getLocationValues();
+  const location = locations[0] || '';
 
-  if(!name || !location){ alert('Project name and location are required.'); return; }
+  if(!name || locations.length===0){ alert('Project name and at least one location are required.'); return; }
 
   const phase = document.getElementById('f-phase').value;
 
@@ -1147,7 +1160,7 @@ async function saveCurrent(){
 
     const p = projects.find(p=>p.id===editingId);
 
-    Object.assign(p, {name, location, phase, plan, notes, resources});
+    Object.assign(p, {name, location, locations, phase, plan, notes, resources});
 
     delete p.quarter; delete p.nextPhase; delete p.nextQuarter; delete p.roadmap;
 
@@ -1155,7 +1168,7 @@ async function saveCurrent(){
 
   } else {
 
-    savedProject = { id: 'p'+Date.now()+Math.random().toString(36).slice(2,7), name, location, phase, plan, notes, resources };
+    savedProject = { id: 'p'+Date.now()+Math.random().toString(36).slice(2,7), name, location, locations, phase, plan, notes, resources };
 
     projects.push(savedProject);
 
@@ -1226,7 +1239,7 @@ function setView(mode){
 
     document.getElementById('topTitle').textContent = 'Timeline by project';
 
-    document.getElementById('topDesc').textContent = 'One line per project, left to right, split into phases. The green line marks this quarter. Click a project to open it.';
+    document.getElementById('topDesc').textContent = 'One line per project, left to right, split into phases. Drag a phase bar left or right to move its start quarter. Click a project to open it.';
 
     document.getElementById('railSub').textContent = "Each project drawn as one line across the quarters it runs, split into phases.";
 
@@ -1276,7 +1289,7 @@ function renderLegend(){
 
         ${keys}
 
-        <div class="key" style="margin-top:9px"><span class="seg" style="background:repeating-linear-gradient(45deg,#8FB0A2,#8FB0A2 3px,#C2D4CB 3px,#C2D4CB 6px)"></span> Anticipated (future)</div>
+        <div class="key" style="margin-top:9px"><span class="seg" style="background:repeating-linear-gradient(45deg,#6F94BC,#6F94BC 3px,#B5C9DE 3px,#B5C9DE 6px)"></span> Anticipated (future)</div>
 
       </div></div>`;
 
@@ -1302,7 +1315,7 @@ function renderLocationList(){
 
   const locs = {};
 
-  projects.forEach(p=>{ locs[p.location] = (locs[p.location]||0)+1; });
+  projects.forEach(p=>{ [...new Set(projectLocations(p))].forEach(loc=>{ locs[loc] = (locs[loc]||0)+1; }); });
 
   const el = document.getElementById('locList');
 
@@ -1366,7 +1379,7 @@ function renderLocationList(){
 
 function toggleLocation(name){
 
-  const allNames = Object.keys(projects.reduce((m,p)=>{m[p.location]=1;return m;},{}));
+  const allNames = [...new Set(projects.flatMap(projectLocations))];
 
   if(dimmedLocations.size === 0){ allNames.forEach(n=>{ if(n!==name) dimmedLocations.add(n); }); }
 
@@ -1505,11 +1518,11 @@ function renderProjectGrid(){
 
   const sorted = [...projects].sort((a,b)=>{
 
-    const ra = REGION_ORDER.indexOf(regionOf(a.location)), rb = REGION_ORDER.indexOf(regionOf(b.location));
+    const ra = REGION_ORDER.indexOf(regionOf(primaryLocation(a))), rb = REGION_ORDER.indexOf(regionOf(primaryLocation(b)));
 
     if(ra!==rb) return ra-rb;
 
-    if(a.location!==b.location) return a.location<b.location?-1:1;
+    if(primaryLocation(a)!==primaryLocation(b)) return primaryLocation(a)<primaryLocation(b)?-1:1;
 
     const sa = plannedStops(a)[0], sb = plannedStops(b)[0];
 
@@ -1531,7 +1544,7 @@ function renderProjectGrid(){
 
     const sel = p.id===selectedProjectId ? 'selected' : '';
 
-    const col = locationColor(p.location);
+    const col = locationColor(primaryLocation(p));
 
     const stops = plannedStops(p);
 
@@ -1561,9 +1574,12 @@ function renderProjectGrid(){
 
       const pi = phaseIndex(s.phase);
 
-      const left = (keyIndex(s.start)-minIdx)*COL + 3;
-
-      const width = s.dur*COL - 6;
+      const rawStart = keyIndex(s.start);
+      const rawEnd = rawStart + s.dur;
+      if(rawEnd <= minIdx) return;
+      const visibleStart = Math.max(rawStart, minIdx);
+      const left = (visibleStart-minIdx)*COL + 3;
+      const width = Math.max(0, (rawEnd-visibleStart)*COL - 6);
 
       const bg = PHASE_COLORS[pi];
 
@@ -1583,7 +1599,7 @@ function renderProjectGrid(){
 
       const label = width > 54 ? `<span class="seg-name">${PHASE_SHORT[pi]}</span>${durLabel}` : '';
 
-      segs += `<div class="seg-bar ${isFuture?'future':''}" style="left:${left}px;width:${width}px;background:${bg};color:${txt};${ring}"
+      segs += `<div class="seg-bar ${isFuture?'future':''}" data-pid="${p.id}" data-phase="${s.phase}" data-start="${s.start}" data-dur="${s.dur}" style="left:${left}px;width:${width}px;background:${bg};color:${txt};${ring}"
 
                     title="${p.name} — ${s.phase}${isCurrent?' (current)':(isFuture?' (planned)':'')}, ${s.dur} quarter${s.dur>1?'s':''}">${hatch}${label}</div>`;
 
@@ -1617,7 +1633,7 @@ function renderProjectGrid(){
 
         <span class="swatch" style="background:${col}"></span>
 
-        <span class="meta"><span class="pname">${p.name}</span><span class="ploc">${p.location}${resourceNamesForProject(p).length ? ' · ' + resourceNamesForProject(p).join(', ') : ''}</span></span>
+        <span class="meta"><span class="pname">${p.name}</span><span class="ploc">${projectLocations(p).join(', ')}${resourceNamesForProject(p).length ? ' · ' + resourceNamesForProject(p).join(', ') : ''}</span></span>
 
       </div>
 
@@ -1640,7 +1656,68 @@ function renderProjectGrid(){
   html += '</div></div>';
 
   wrap.innerHTML = html;
+  bindTimelineDragging(minIdx, COL);
 
+}
+
+function shiftProjectPhase(projectId, phase, quarterShift){
+  if(!quarterShift) return;
+  const p = projects.find(x=>x.id===projectId);
+  if(!p || !p.plan || !p.plan[phase] || !p.plan[phase].start) return;
+
+  const oldIdx = keyIndex(p.plan[phase].start);
+  const newIdx = Math.max(qIndex(4,2026), oldIdx + quarterShift);
+  const y = Math.floor(newIdx/4), q=(newIdx%4)+1;
+  p.plan[phase].start = qKey(q,y);
+
+  saveProjectRemote(p).then(()=>render()).catch(e=>{
+    console.error(e);
+    alert('Could not save the moved phase. Please try again.');
+    fetchFreshProjects().then(f=>{projects=f;render();});
+  });
+}
+
+function bindTimelineDragging(minIdx, COL){
+  document.querySelectorAll('.seg-bar[data-pid][data-phase]').forEach(bar=>{
+    let drag = null;
+
+    bar.addEventListener('pointerdown', e=>{
+      if(e.button !== 0 && e.pointerType === 'mouse') return;
+      drag = { startX:e.clientX, originalLeft:parseFloat(bar.style.left)||0, moved:false };
+      bar.setPointerCapture(e.pointerId);
+      bar.classList.add('dragging');
+      e.stopPropagation();
+    });
+
+    bar.addEventListener('pointermove', e=>{
+      if(!drag) return;
+      const dx = e.clientX - drag.startX;
+      if(Math.abs(dx)>3) drag.moved = true;
+      const quarters = Math.round(dx / COL);
+      bar.style.left = (drag.originalLeft + quarters*COL) + 'px';
+      e.stopPropagation();
+    });
+
+    const finish = e=>{
+      if(!drag) return;
+      const dx = e.clientX - drag.startX;
+      const quarters = Math.round(dx / COL);
+      const moved = drag.moved;
+      drag = null;
+      bar.classList.remove('dragging');
+      try{ bar.releasePointerCapture(e.pointerId); }catch(_){}
+      e.stopPropagation();
+
+      if(moved && quarters !== 0){
+        shiftProjectPhase(bar.dataset.pid, bar.dataset.phase, quarters);
+      } else {
+        render();
+      }
+    };
+
+    bar.addEventListener('pointerup', finish);
+    bar.addEventListener('pointercancel', finish);
+  });
 }
 
 function onProjClick(id){
@@ -1777,13 +1854,14 @@ function renderPhaseGrid(){
 
       const ghost = isCurrent ? '' : 'ghost';
 
-      const left = (bar.s - minIdx) * COL + 5;
-
-      const width = bar.dur * COL - 10;
+      if(bar.e < minIdx) return;
+      const visibleStart = Math.max(bar.s, minIdx);
+      const left = (visibleStart - minIdx) * COL + 5;
+      const width = Math.max(0, (bar.e - visibleStart + 1) * COL - 10);
 
       const top = PAD + bar.lane * (BAR_H + GAP);
 
-      const colorStyle = isCurrent ? `background:${locationColor(p.location)};` : `color:${locationColor(p.location)};`;
+      const colorStyle = isCurrent ? `background:${locationColor(primaryLocation(p))};` : `color:${locationColor(primaryLocation(p))};`;
 
       const durLabel = bar.dur>1 ? `<span class="bar-dur">${bar.dur}q</span>` : '';
 
@@ -1791,7 +1869,7 @@ function renderPhaseGrid(){
 
       html += `<div class="bar ${ghost} ${sel} ${faded}" data-pid="${p.id}" style="left:${left}px;width:${width}px;top:${top}px;height:${BAR_H}px;${colorStyle}"
 
-                  title="${p.name} — ${p.location} (${kind}, ${bar.dur} quarter${bar.dur>1?'s':''})"
+                  title="${p.name} — ${projectLocations(p).join(', ')} (${kind}, ${bar.dur} quarter${bar.dur>1?'s':''})"
 
                   onclick="onBarClick('${p.id}', event)">${p.name}${durLabel}</div>`;
 
@@ -1853,7 +1931,7 @@ function drawFlowLine(minIdx, COL){
 
   const wrapRect = wrap.getBoundingClientRect();
 
-  const color = locationColor(p.location);
+  const color = locationColor(primaryLocation(p));
 
   const nodes = [];
 

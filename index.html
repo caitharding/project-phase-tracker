@@ -8,7 +8,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Project Phase Tracker</title>
+<title>Susquehanna Real Estate &amp; Facilities: Capital Projects Tracker</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 
@@ -175,6 +175,7 @@
 
   /* view switch */
 
+  .view-switch-wrap { display:flex; justify-content:flex-end; padding:12px 26px 0; background:var(--surface); }
   .view-switch { display:flex; background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:3px; flex-shrink:0; }
 
   .view-switch button { border:none; background:none; font-family:var(--font-body); font-size:12.5px; font-weight:500; color:var(--ink-soft); padding:6px 12px; border-radius:6px; cursor:pointer; white-space:nowrap; }
@@ -221,11 +222,11 @@
 
   .proj-head .swatch { width:9px; height:26px; border-radius:3px; flex-shrink:0; }
 
-  .proj-head .meta { min-width:0; }
+  .proj-head .meta { min-width:0; width:100%; overflow:hidden; }
 
-  .proj-head .pname { font-weight:600; font-size:13px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .proj-head .pname { display:block; font-weight:600; font-size:13px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-  .proj-head .ploc { font-size:11px; color:var(--ink-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .proj-head .ploc { display:block; max-width:100%; font-size:11px; color:var(--ink-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   .proj-row.dim .proj-head, .proj-row.dim .plane { opacity:0.32; }
 
@@ -383,9 +384,7 @@
 
     <div>
 
-      <h1>Project Phase Tracker</h1>
-
-      <p class="sub" id="railSub">Each project drawn as one line across the quarters it runs, split into phases.</p>
+      <h1>Susquehanna Real Estate &amp; Facilities: Capital Projects Tracker</h1>
 
     </div>
 
@@ -417,24 +416,11 @@
 
   <div class="main">
 
-    <div class="topbar">
-
-      <div>
-
-        <h2 id="topTitle">Timeline by project</h2>
-
-        <p id="topDesc">One line per project, left to right, split into phases. Drag a phase bar left or right to move its start quarter. Click a project to open it.</p>
-
-      </div>
-
+    <div class="view-switch-wrap">
       <div class="view-switch">
-
         <button id="btnProject" class="active" onclick="setView('project')">By project</button>
-
         <button id="btnPhase" onclick="setView('phase')">By phase</button>
-
       </div>
-
     </div>
 
     <div class="grid-scroll">
@@ -1237,19 +1223,9 @@ function setView(mode){
 
   if(mode==='project'){
 
-    document.getElementById('topTitle').textContent = 'Timeline by project';
-
-    document.getElementById('topDesc').textContent = 'One line per project, left to right, split into phases. Drag a phase bar left or right to move its start quarter. Click a project to open it.';
-
-    document.getElementById('railSub').textContent = "Each project drawn as one line across the quarters it runs, split into phases.";
 
   } else {
 
-    document.getElementById('topTitle').textContent = 'Timeline by phase';
-
-    document.getElementById('topDesc').textContent = 'Each phase drawn as a bar across the quarters it spans. Click a project to trace its path across every phase.';
-
-    document.getElementById('railSub').textContent = "Each phase drawn as a bar across the quarters it's anticipated to span.";
 
   }
 

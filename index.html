@@ -147,6 +147,14 @@
   .resource-remove { border:none; background:none; color:var(--danger); font-size:18px; cursor:pointer; line-height:1; padding:2px 4px; }
   .resource-empty { color:var(--ink-faint); font-size:11.5px; padding:3px 0 8px; }
 
+  .status-list { display:flex; flex-direction:column; gap:4px; }
+  .status-item { display:flex; align-items:center; gap:8px; cursor:pointer; padding:5px 6px; border-radius:6px; }
+  .status-item:hover { background:var(--bg); }
+  .status-item.dim { opacity:0.4; }
+  .status-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .status-item .name { flex:1; }
+  .status-item .count { color:var(--ink-faint); font-size:12px; }
+
   .multi-select { border:1px solid var(--line); border-radius:8px; background:var(--surface); overflow:hidden; }
   .multi-select-list { max-height:180px; overflow:auto; padding:6px; }
   .multi-region { font-size:10.5px; color:var(--ink-faint); font-weight:600; letter-spacing:.02em; padding:7px 6px 4px; }
@@ -407,6 +415,14 @@
 
     </div>
 
+    <div class="rail-section">
+
+      <h2>Status (click to filter)</h2>
+
+      <div class="status-list" id="statusList"></div>
+
+    </div>
+
     <div id="legendSlot"></div>
 
     <div class="status-line" id="statusLine">Loading shared data…</div>
@@ -470,6 +486,18 @@
         </div>
       </div>
       <div class="selected-locations" id="selectedLocations"></div>
+
+    </div>
+
+    <div class="field">
+
+      <label>Status</label>
+
+      <select id="f-status">
+        <option value="active">Active / Approved</option>
+        <option value="proposed">Proposed / Pending approval</option>
+        <option value="on-hold">On hold</option>
+      </select>
 
     </div>
 
@@ -553,6 +581,12 @@ const LOCATION_PALETTE = ['#173F73','#275A8E','#3B6EA8','#517FB6','#6A92C0','#31
 
 const MAX_DURATION = 12;
 
+const STATUSES = [
+  { key:'active', label:'Active / Approved', color:'#173F73' },
+  { key:'proposed', label:'Proposed / Pending approval', color:'#B7832F' },
+  { key:'on-hold', label:'On hold', color:'#7D8796' },
+];
+
 
 
 const REGIONS = [
@@ -599,6 +633,8 @@ let dimmedLocations = new Set();
 
 let dimmedResources = new Set();
 
+let dimmedStatuses = new Set();
+
 let selectedProjectId = null;
 
 let editingId = null;
@@ -644,6 +680,7 @@ function keyIndex(key){ const p = parseQKey(key); return p ? qIndex(p.q,p.y) : n
 function normalizeProject(p){
 
   if(!Array.isArray(p.resources)) p.resources = [];
+  if(!p.status) p.status = 'active';
   if(!Array.isArray(p.locations) || !p.locations.length){
     p.locations = p.location ? [p.location] : [];
   }
@@ -748,16 +785,26 @@ function resourceInitials(name){
   return String(name || '').split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0].toUpperCase()).join('') || '•';
 }
 
+function statusInfo(key){
+  return STATUSES.find(s=>s.key===key) || STATUSES[0];
+}
+
+function statusColor(p){
+  return statusInfo(p.status).color;
+}
+
 function isProjectDimmed(p){
   const locs = projectLocations(p);
   if(dimmedLocations.size > 0 && (locs.length===0 || locs.every(loc=>dimmedLocations.has(loc)))) return true;
 
-  if(dimmedResources.size === 0) return false;
+  if(dimmedResources.size > 0){
+    const names = resourceNamesForProject(p);
+    if(names.length === 0 || names.every(name => dimmedResources.has(name))) return true;
+  }
 
-  const names = resourceNamesForProject(p);
-  if(names.length === 0) return true;
+  if(dimmedStatuses.size > 0 && dimmedStatuses.has(p.status || 'active')) return true;
 
-  return names.every(name => dimmedResources.has(name));
+  return false;
 }
 
 
@@ -1099,6 +1146,8 @@ function openPanel(project){
 
   document.getElementById('f-phase').value = project ? (project.phase || '') : '';
 
+  document.getElementById('f-status').value = project ? (project.status || 'active') : 'active';
+
   document.getElementById('f-notes').value = project ? (project.notes||'') : '';
 
   buildLocationMulti(project ? projectLocations(project) : []);
@@ -1132,6 +1181,8 @@ async function saveCurrent(){
 
   if(!name || locations.length===0){ alert('Project name and at least one location are required.'); return; }
 
+  const status = document.getElementById('f-status').value || 'active';
+
   const phase = document.getElementById('f-phase').value;
 
   if(!phase){ alert('Please choose a current phase.'); return; }
@@ -1150,7 +1201,7 @@ async function saveCurrent(){
 
     const p = projects.find(p=>p.id===editingId);
 
-    Object.assign(p, {name, location, locations, phase, plan, notes, resources});
+    Object.assign(p, {name, location, locations, status, phase, plan, notes, resources});
 
     delete p.quarter; delete p.nextPhase; delete p.nextQuarter; delete p.roadmap;
 
@@ -1158,7 +1209,7 @@ async function saveCurrent(){
 
   } else {
 
-    savedProject = { id: 'p'+Date.now()+Math.random().toString(36).slice(2,7), name, location, locations, phase, plan, notes, resources };
+    savedProject = { id: 'p'+Date.now()+Math.random().toString(36).slice(2,7), name, location, locations, status, phase, plan, notes, resources };
 
     projects.push(savedProject);
 
@@ -1247,6 +1298,8 @@ function render(){
 
   renderResourceList();
 
+  renderStatusList();
+
   renderLegend();
 
   if(viewMode==='project') renderProjectGrid();
@@ -1263,14 +1316,15 @@ function renderLegend(){
 
   if(viewMode==='project'){
 
-    let keys = PHASES.map((ph,i)=>`<div class="key"><span class="seg" style="background:${PHASE_COLORS[i]}"></span><strong style="width:14px;text-align:center">${PHASE_SYMBOLS[i]}</strong> ${ph}</div>`).join('');
+    let phaseKeys = PHASES.map((ph,i)=>`<div class="key"><strong style="width:26px;text-align:center;font-size:13px">${PHASE_SYMBOLS[i]}</strong> ${ph}</div>`).join('');
+    let statusKeys = STATUSES.map(s=>`<div class="key"><span class="seg" style="background:${s.color}"></span> ${s.label}</div>`).join('');
 
     slot.innerHTML = `<div class="legend"><div class="phase-legend">
-
-        ${keys}
-
+        <div style="font-weight:600;margin-bottom:6px;color:var(--ink-soft)">Phase symbols</div>
+        ${phaseKeys}
+        <div style="font-weight:600;margin:12px 0 6px;color:var(--ink-soft)">Status colors</div>
+        ${statusKeys}
         <div class="key" style="margin-top:9px"><span class="seg" style="background:repeating-linear-gradient(45deg,#6F94BC,#6F94BC 3px,#B5C9DE 3px,#B5C9DE 6px)"></span> Anticipated (future)</div>
-
       </div></div>`;
 
   } else {
@@ -1432,6 +1486,54 @@ function clearResourceFilter(){
   render();
 }
 
+function renderStatusList(){
+  const counts = {};
+  STATUSES.forEach(s=>counts[s.key]=0);
+  projects.forEach(p=>{ counts[p.status || 'active'] = (counts[p.status || 'active'] || 0) + 1; });
+
+  const el = document.getElementById('statusList');
+  const anyFilter = dimmedStatuses.size > 0;
+
+  let html = `<div class="loc-toolbar">
+    <span class="loc-hint">${anyFilter ? 'Showing selected only' : 'Showing all'}</span>
+    <button class="loc-showall" onclick="clearStatusFilter()" ${anyFilter?'':'disabled'}>Show all</button>
+  </div>`;
+
+  html += STATUSES.map(s=>{
+    const shown = !dimmedStatuses.has(s.key);
+    const dim = shown ? '' : 'dim';
+    const check = shown && anyFilter ? '✓' : '';
+    return `<div class="status-item ${dim}" onclick="toggleStatus('${s.key}')">
+      <span class="status-dot" style="background:${s.color}"></span>
+      <span class="name">${s.label}</span>
+      <span class="loc-check">${check}</span>
+      <span class="count">${counts[s.key] || 0}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = html;
+}
+
+function toggleStatus(key){
+  const allKeys = STATUSES.map(s=>s.key);
+
+  if(dimmedStatuses.size === 0){
+    allKeys.forEach(k=>{ if(k !== key) dimmedStatuses.add(k); });
+  } else if(dimmedStatuses.has(key)){
+    dimmedStatuses.delete(key);
+  } else {
+    dimmedStatuses.add(key);
+  }
+
+  if(allKeys.every(k=>dimmedStatuses.has(k))) dimmedStatuses.clear();
+  render();
+}
+
+function clearStatusFilter(){
+  dimmedStatuses.clear();
+  render();
+}
+
 
 
 // ================= PROJECT (swimlane) VIEW =================
@@ -1561,9 +1663,9 @@ function renderProjectGrid(){
       const left = (visibleStart-minIdx)*COL + 3;
       const width = Math.max(0, (rawEnd-visibleStart)*COL - 6);
 
-      const bg = PHASE_COLORS[pi];
+      const bg = statusColor(p);
 
-      const txt = PHASE_TEXT[pi];
+      const txt = '#FFFFFF';
 
       // future phases get a subtle diagonal hatch so "planned" reads at a glance
 
@@ -1573,7 +1675,7 @@ function renderProjectGrid(){
 
         : '';
 
-      const ring = isCurrent ? `box-shadow:0 0 0 2px ${col};` : '';
+      const ring = isCurrent ? `box-shadow:0 0 0 2px ${statusColor(p)};` : '';
 
       const durLabel = s.dur>1 ? `<span class="seg-dur">${s.dur}q</span>` : '';
 
@@ -1581,7 +1683,7 @@ function renderProjectGrid(){
 
       segs += `<div class="seg-bar ${isFuture?'future':''}" data-pid="${p.id}" data-phase="${s.phase}" data-start="${s.start}" data-dur="${s.dur}" style="left:${left}px;width:${width}px;background:${bg};color:${txt};${ring}"
 
-                    title="${p.name} — ${s.phase}${isCurrent?' (current)':(isFuture?' (planned)':'')}, ${s.dur} quarter${s.dur>1?'s':''}">${hatch}${label}</div>`;
+                    title="${p.name} — ${statusInfo(p.status).label} — ${s.phase}${isCurrent?' (current)':(isFuture?' (planned)':'')}, ${s.dur} quarter${s.dur>1?'s':''}">${hatch}${label}</div>`;
 
 
 
@@ -1611,7 +1713,7 @@ function renderProjectGrid(){
 
       <div class="proj-head" onclick="onProjClick('${p.id}')">
 
-        <span class="swatch" style="background:${col}"></span>
+        <span class="swatch" style="background:${statusColor(p)}" title="${statusInfo(p.status).label}"></span>
 
         <span class="meta" title="${projectLocations(p).join(', ')}${resourceNamesForProject(p).length ? ' • Resources: ' + resourceNamesForProject(p).join(', ') : ''}"><span class="pname">${p.name}</span><span class="ploc">${projectLocations(p).join(', ')}</span></span>
 
@@ -1841,7 +1943,7 @@ function renderPhaseGrid(){
 
       const top = PAD + bar.lane * (BAR_H + GAP);
 
-      const colorStyle = isCurrent ? `background:${locationColor(primaryLocation(p))};` : `color:${locationColor(primaryLocation(p))};`;
+      const colorStyle = isCurrent ? `background:${statusColor(p)};` : `color:${statusColor(p)};`;
 
       const durLabel = bar.dur>1 ? `<span class="bar-dur">${bar.dur}q</span>` : '';
 
@@ -1849,7 +1951,7 @@ function renderPhaseGrid(){
 
       html += `<div class="bar ${ghost} ${sel} ${faded}" data-pid="${p.id}" style="left:${left}px;width:${width}px;top:${top}px;height:${BAR_H}px;${colorStyle}"
 
-                  title="${p.name} — ${projectLocations(p).join(', ')} (${kind}, ${bar.dur} quarter${bar.dur>1?'s':''})"
+                  title="${p.name} — ${statusInfo(p.status).label} — ${projectLocations(p).join(', ')} (${kind}, ${bar.dur} quarter${bar.dur>1?'s':''})"
 
                   onclick="onBarClick('${p.id}', event)">${p.name}${durLabel}</div>`;
 
@@ -1911,7 +2013,7 @@ function drawFlowLine(minIdx, COL){
 
   const wrapRect = wrap.getBoundingClientRect();
 
-  const color = locationColor(primaryLocation(p));
+  const color = statusColor(p);
 
   const nodes = [];
 

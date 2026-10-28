@@ -1,0 +1,3233 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Susquehanna Real Estate &amp; Facilities: Capital Projects Tracker</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+  :root{
+
+    --bg: #EEF3F8;
+
+    --surface: #FFFFFF;
+
+    --ink: #17233A;
+
+    --ink-soft: #5B6B82;
+
+    --ink-faint: #8B99AB;
+
+    --line: #CFD9E6;
+
+    --line-soft: #E4EAF1;
+
+    --accent: #173F73;
+
+    --accent-soft: #DCE7F5;
+
+    --danger: #A34D5D;
+
+    --radius: 10px;
+
+    --font-head: 'Fraunces', Georgia, serif;
+
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+    --col-w: 132px;   /* width of a quarter column */
+
+    --label-w: 210px; /* width of the project/phase label column */
+
+  }
+
+  * { box-sizing: border-box; }
+
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--font-body); font-size:14px; }
+
+  .app { display:flex; height:100vh; overflow:hidden; }
+
+
+
+  /* ---- Left rail ---- */
+
+  .rail { width:230px; flex-shrink:0; background:var(--surface); border-right:1px solid var(--line); padding:22px 18px; display:flex; flex-direction:column; gap:22px; overflow-y:auto; }
+
+  .rail h1 { font-family:var(--font-head); font-weight:600; font-size:19px; line-height:1.25; margin:0 0 4px; }
+
+  .rail .sub { color:var(--ink-soft); font-size:12.5px; line-height:1.5; margin:0; }
+
+  .add-btn { background:var(--accent); color:#fff; border:none; border-radius:var(--radius); padding:10px 14px; font-size:13.5px; font-weight:500; cursor:pointer; font-family:var(--font-body); }
+
+  .add-btn:hover { background:#12335f; }
+
+  .rail-section h2 { font-size:12px; color:var(--ink-soft); margin:0 0 10px; font-weight:500; }
+
+  .loc-list { display:flex; flex-direction:column; gap:4px; }
+
+  .loc-toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+
+  .loc-hint { font-size:11px; color:var(--ink-faint); }
+
+  .loc-showall { border:1px solid var(--line); background:var(--surface); color:var(--accent); font-size:11px; font-family:var(--font-body); border-radius:6px; padding:3px 8px; cursor:pointer; }
+
+  .loc-showall:hover:not(:disabled) { background:var(--accent-soft); }
+
+  .loc-showall:disabled { color:var(--ink-faint); cursor:default; opacity:0.6; }
+
+  .loc-check { color:var(--accent); font-size:12px; font-weight:600; width:12px; text-align:center; }
+
+  .loc-region { display:flex; justify-content:space-between; align-items:baseline; font-size:11px; color:var(--ink-faint); font-weight:600; letter-spacing:0.02em; margin:10px 6px 2px; }
+
+  .loc-region:first-child { margin-top:0; }
+
+  .loc-region-count { font-weight:400; }
+
+  .loc-item { display:flex; align-items:center; gap:8px; cursor:pointer; padding:4px 6px; border-radius:6px; }
+
+  .loc-item:hover { background:var(--bg); }
+
+  .loc-item.dim { opacity:0.4; }
+
+  .swatch { width:10px; height:10px; border-radius:3px; flex-shrink:0; }
+
+  .loc-item span.name { flex:1; }
+
+  .loc-item span.count { color:var(--ink-faint); font-size:12px; }
+
+  .legend { font-size:11.5px; color:var(--ink-soft); border-top:1px solid var(--line-soft); padding-top:14px; line-height:1.6; }
+
+  .legend .key { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+
+  .legend .bar-solid { width:26px; height:12px; border-radius:6px; background:var(--accent); flex-shrink:0; }
+
+  .legend .bar-ghost { width:26px; height:12px; border-radius:6px; border:1.5px dashed var(--accent); flex-shrink:0; }
+
+  .legend .dash { width:24px; height:0; border-top:2.5px dashed var(--accent); flex-shrink:0; }
+
+  /* Phase legend (swatches only present in project view) */
+
+  .phase-legend { font-size:11.5px; color:var(--ink-soft); line-height:1.6; }
+
+  .phase-legend .key { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+
+  .phase-legend .seg { width:26px; height:12px; border-radius:4px; flex-shrink:0; }
+
+  .status-line { font-size:11.5px; color:var(--ink-faint); border-top:1px solid var(--line-soft); padding-top:14px; line-height:1.5; }
+
+  .resource-list { display:flex; flex-direction:column; gap:4px; }
+  .resource-item { display:flex; align-items:center; gap:8px; cursor:pointer; padding:5px 6px; border-radius:6px; }
+  .resource-item:hover { background:var(--bg); }
+  .resource-item.dim { opacity:0.4; }
+  .resource-avatar { width:22px; height:22px; border-radius:50%; background:var(--accent-soft); color:var(--accent);
+                     display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:600; flex-shrink:0; }
+  .resource-item .name { flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .resource-item .count { color:var(--ink-faint); font-size:12px; }
+
+  .resource-editor { border:1px solid var(--line-soft); border-radius:9px; padding:12px 14px; background:var(--bg); }
+  .resource-editor-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px; }
+  .resource-editor-title { font-size:12px; color:var(--ink-soft); }
+  .resource-editor-sub { font-size:11.5px; color:var(--ink-faint); margin-bottom:10px; line-height:1.45; }
+  .resource-add { border:1px solid var(--line); background:var(--surface); color:var(--accent); border-radius:6px;
+                  padding:5px 8px; font-size:11.5px; cursor:pointer; font-family:var(--font-body); }
+  .resource-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .resource-row input[type="text"] { flex:1; min-width:0; padding:8px 9px; border:1px solid var(--line); border-radius:6px;
+                                      font-family:var(--font-body); font-size:12.5px; background:var(--surface); color:var(--ink); }
+  .resource-row input[type="number"] { width:72px; padding:8px 8px; border:1px solid var(--line); border-radius:6px;
+                                        font-family:var(--font-body); font-size:12.5px; background:var(--surface); color:var(--ink); }
+  .resource-remove { border:none; background:none; color:var(--danger); font-size:18px; cursor:pointer; line-height:1; padding:2px 4px; }
+  .resource-empty { color:var(--ink-faint); font-size:11.5px; padding:3px 0 8px; }
+
+  .status-list { display:flex; flex-direction:column; gap:4px; }
+  .status-item { display:flex; align-items:center; gap:8px; cursor:pointer; padding:5px 6px; border-radius:6px; }
+  .status-item:hover { background:var(--bg); }
+  .status-item.dim { opacity:0.4; }
+  .status-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .status-item .name { flex:1; }
+  .status-item .count { color:var(--ink-faint); font-size:12px; }
+
+  .multi-select { border:1px solid var(--line); border-radius:8px; background:var(--surface); overflow:hidden; }
+  .multi-select-list { max-height:180px; overflow:auto; padding:6px; }
+  .multi-region { font-size:10.5px; color:var(--ink-faint); font-weight:600; letter-spacing:.02em; padding:7px 6px 4px; }
+  .multi-option { display:flex; align-items:center; gap:8px; padding:6px; border-radius:6px; cursor:pointer; font-size:12.5px; }
+  .multi-option:hover { background:var(--bg); }
+  .multi-option input { width:auto; margin:0; }
+  .multi-custom { display:flex; gap:8px; padding:8px; border-top:1px solid var(--line-soft); }
+  .multi-custom input { flex:1; min-width:0; }
+  .multi-custom button { border:1px solid var(--line); background:var(--surface); color:var(--accent); border-radius:6px; padding:7px 9px; cursor:pointer; }
+  .selected-locations { display:flex; flex-wrap:wrap; gap:6px; margin-top:7px; }
+  .location-chip { display:inline-flex; align-items:center; gap:5px; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:4px 8px; font-size:11.5px; }
+
+
+  /* ---- Dashboard navigation ---- */
+  .page-tabs-wrap { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 26px; background:var(--surface); border-bottom:1px solid var(--line); }
+  .page-tabs { display:flex; gap:4px; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:3px; }
+  .page-tabs button { border:none; background:transparent; color:var(--ink-soft); font-family:var(--font-body); font-size:13px; font-weight:600; padding:8px 14px; border-radius:7px; cursor:pointer; }
+  .page-tabs button.active { background:var(--surface); color:var(--ink); box-shadow:0 1px 3px rgba(23,35,58,.10); }
+  .timeline-toggle { display:none; }
+  .timeline-toggle.show { display:flex; }
+  .content-scroll { flex:1; overflow:auto; padding:22px 26px 40px; }
+  .content-wrap { min-width:0; }
+
+  /* ---- Summary landing page ---- */
+  .summary-shell { max-width:1180px; margin:0 auto; }
+  .summary-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:18px; }
+  .summary-head h2 { margin:0; font-family:var(--font-head); font-size:22px; font-weight:600; }
+  .summary-head p { margin:4px 0 0; color:var(--ink-soft); font-size:12.5px; }
+  .summary-count { color:var(--ink-faint); font-size:12px; white-space:nowrap; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:18px; }
+  .kpi-card { border:1px solid var(--line); background:var(--surface); border-radius:12px; padding:16px; text-align:left; cursor:pointer; transition:.12s ease; }
+  .kpi-card:hover { border-color:#9DB2CA; transform:translateY(-1px); }
+  .kpi-card.active { box-shadow:0 0 0 2px var(--accent); border-color:var(--accent); }
+  .kpi-value { font-family:var(--font-head); font-size:28px; font-weight:600; line-height:1; margin-bottom:7px; }
+  .kpi-label { font-size:12px; color:var(--ink-soft); line-height:1.35; }
+  .kpi-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+
+  .summary-grid { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(300px,.8fr); gap:16px; }
+  .summary-card { border:1px solid var(--line); background:var(--surface); border-radius:12px; padding:18px; min-width:0; }
+  .summary-card h3 { margin:0 0 4px; font-size:14px; font-weight:600; }
+  .summary-card .card-sub { color:var(--ink-faint); font-size:11.5px; margin-bottom:16px; }
+  .phase-pipeline { display:flex; flex-direction:column; gap:10px; }
+  .phase-pipe-row { border:none; width:100%; background:transparent; padding:0; cursor:pointer; text-align:left; }
+  .phase-pipe-meta { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:5px; font-size:12px; }
+  .phase-pipe-name { font-weight:600; color:var(--ink); }
+  .phase-pipe-count { color:var(--ink-soft); }
+  .phase-track { height:30px; background:var(--bg); border-radius:7px; overflow:hidden; border:1px solid var(--line-soft); }
+  .phase-fill { height:100%; min-width:34px; border-radius:6px; display:flex; align-items:center; padding:0 10px; color:#fff; font-size:12px; font-weight:600; transition:.15s ease; }
+  .phase-pipe-row.active .phase-track { box-shadow:0 0 0 2px var(--accent); }
+  .phase-pipe-row:hover .phase-fill { filter:brightness(.96); }
+
+  .focus-list { display:flex; flex-direction:column; gap:8px; }
+  .focus-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line-soft); cursor:pointer; }
+  .focus-row:last-child { border-bottom:none; }
+  .focus-row:hover .focus-name { color:var(--accent); }
+  .focus-name { flex:1; min-width:0; font-weight:600; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .focus-meta { font-size:11px; color:var(--ink-faint); }
+  .status-pill { display:inline-flex; align-items:center; border-radius:999px; padding:4px 8px; font-size:10.5px; font-weight:600; color:#fff; white-space:nowrap; }
+
+  /* ---- Table view ---- */
+  .table-shell { max-width:1400px; margin:0 auto; }
+  .table-toolbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; }
+  .table-toolbar h2 { margin:0; font-family:var(--font-head); font-size:20px; }
+  .table-toolbar input { width:min(320px,100%); padding:9px 10px; border:1px solid var(--line); border-radius:8px; font-family:var(--font-body); color:var(--ink); background:var(--surface); }
+  .project-table-wrap { overflow:auto; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
+  .project-table { width:100%; border-collapse:collapse; min-width:980px; }
+  .project-table th { position:sticky; top:0; z-index:2; background:var(--bg); color:var(--ink-soft); font-size:11px; font-weight:600; text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  .project-table td { padding:11px 12px; border-bottom:1px solid var(--line-soft); font-size:12px; vertical-align:middle; }
+  .project-table tr:last-child td { border-bottom:none; }
+  .project-table tbody tr { cursor:pointer; }
+  .project-table tbody tr:hover { background:#F7F9FC; }
+  .project-table .project-name-cell { font-weight:600; color:var(--ink); }
+  .project-table .muted { color:var(--ink-faint); }
+  .table-link { border:1px solid var(--line); background:var(--surface); color:var(--accent); border-radius:6px; padding:5px 8px; font-family:var(--font-body); font-size:11px; cursor:pointer; white-space:nowrap; }
+  .table-link:hover { background:var(--accent-soft); }
+  .table-empty { padding:46px 20px; text-align:center; color:var(--ink-soft); }
+
+  .phase-filter-list { display:flex; flex-direction:column; gap:4px; }
+  .phase-filter-item { display:flex; align-items:center; gap:8px; cursor:pointer; padding:5px 6px; border-radius:6px; }
+  .phase-filter-item:hover { background:var(--bg); }
+  .phase-filter-item.dim { opacity:.4; }
+  .phase-filter-symbol { width:20px; text-align:center; font-weight:700; color:var(--accent); }
+  .phase-filter-item .name { flex:1; font-size:12px; }
+  .phase-filter-item .count { color:var(--ink-faint); font-size:12px; }
+
+  /* ---- Priority + team demand ---- */
+  .priority-badge { display:inline-flex; align-items:center; justify-content:center; min-width:34px; height:22px; padding:0 8px; border-radius:999px; color:#fff; font-size:10.5px; font-weight:700; letter-spacing:.01em; flex-shrink:0; }
+  .priority-badge.unset { background:#9AA6B5; }
+  .priority-inline { display:inline-flex; align-items:center; gap:6px; min-width:0; }
+  .proj-head .priority-badge { min-width:30px; height:20px; padding:0 7px; font-size:10px; }
+  .proj-head .meta { width:auto; flex:1; }
+  .phase-chip { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:4px 8px; font-size:10.5px; font-weight:600; }
+  .reason-chip { display:inline-flex; align-items:center; gap:5px; background:var(--bg); border:1px solid var(--line-soft); color:var(--ink-soft); border-radius:999px; padding:4px 8px; font-size:10.5px; line-height:1.15; }
+  .reason-chip.more { color:var(--accent); }
+  .reason-list { display:flex; flex-wrap:wrap; gap:6px; }
+  .priority-editor, .team-demand-editor { border:1px solid var(--line-soft); border-radius:9px; padding:12px 14px; background:var(--bg); }
+  .editor-head { font-size:12px; color:var(--ink-soft); font-weight:600; margin-bottom:4px; }
+  .editor-sub { font-size:11.5px; color:var(--ink-faint); line-height:1.45; margin-bottom:10px; }
+  .reason-options { display:grid; grid-template-columns:1fr 1fr; gap:7px 10px; margin-top:8px; }
+  .reason-option { display:flex; align-items:flex-start; gap:7px; font-size:11.5px; color:var(--ink); line-height:1.35; }
+  .reason-option input { width:auto; margin-top:2px; flex-shrink:0; }
+  .team-demand-grid { display:grid; grid-template-columns:minmax(130px,1fr) 110px 110px; gap:8px; align-items:center; }
+  .team-demand-grid .th { font-size:10.5px; color:var(--ink-faint); font-weight:600; }
+  .team-demand-grid .team-name { font-size:11.5px; color:var(--ink); }
+  .team-demand-grid select { width:100%; padding:7px 8px; border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink); font-family:var(--font-body); font-size:11.5px; }
+  .demand-meter { display:inline-flex; gap:3px; vertical-align:middle; }
+  .demand-dot { width:8px; height:8px; border-radius:50%; border:1px solid currentColor; opacity:.28; }
+  .demand-dot.on { opacity:1; background:currentColor; }
+  .capacity-shell { max-width:1420px; margin:0 auto; }
+  .capacity-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:14px; }
+  .capacity-head h2 { margin:0; font-family:var(--font-head); font-size:20px; }
+  .capacity-head p { margin:4px 0 0; color:var(--ink-soft); font-size:12.5px; }
+  .capacity-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:14px; }
+  .priority-summary-card { border:1px solid var(--line); border-radius:10px; background:var(--surface); padding:12px 14px; cursor:pointer; }
+  .priority-summary-card:hover { border-color:#9DB2CA; }
+  .priority-summary-card .num { font-family:var(--font-head); font-size:24px; font-weight:600; margin-bottom:4px; }
+  .capacity-table-wrap { overflow:auto; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
+  .capacity-table { width:100%; border-collapse:collapse; min-width:1180px; }
+  .capacity-table th { position:sticky; top:0; z-index:2; background:var(--bg); color:var(--ink-soft); font-size:10.5px; font-weight:600; text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  .capacity-table td { padding:10px; border-bottom:1px solid var(--line-soft); font-size:11.5px; vertical-align:middle; }
+  .capacity-table tr:last-child td { border-bottom:none; }
+  .capacity-table tbody tr { cursor:pointer; }
+  .capacity-table tbody tr:hover { background:#F7F9FC; }
+  .schedule-mini { position:relative; width:220px; height:26px; background:var(--bg); border:1px solid var(--line-soft); border-radius:7px; overflow:hidden; }
+  .schedule-mini .mini-bar { position:absolute; top:4px; bottom:4px; border-radius:5px; }
+  .team-cell { min-width:92px; }
+  .team-cell small { display:block; color:var(--ink-faint); font-size:9.5px; margin-bottom:2px; }
+  .priority-key { display:flex; flex-wrap:wrap; gap:8px; color:var(--ink-soft); font-size:10.5px; }
+  .priority-key span { display:inline-flex; align-items:center; gap:5px; }
+  .priority-key i { width:9px; height:9px; border-radius:50%; display:inline-block; }
+  .phase-outline { box-shadow:inset 0 0 0 2px rgba(255,255,255,.18); }
+  .priority-outline-p1 { box-shadow:0 0 0 2px #C53A46; }
+  .priority-outline-p2 { box-shadow:0 0 0 2px #D77A2A; }
+  .priority-outline-p3 { box-shadow:0 0 0 2px #C7A33B; }
+  .priority-outline-p4 { box-shadow:0 0 0 2px #6B879F; }
+  .page-tabs { flex-wrap:wrap; }
+  .compact-panel { padding:16px; background:var(--surface); border:1px solid var(--line); border-radius:12px; margin-bottom:16px; }
+  .compact-panel h3 { margin:0 0 9px; font-size:15px; }
+  .compact-select { background:var(--surface); color:var(--ink); border:1px solid var(--line); border-radius:7px; padding:7px 9px; font-family:var(--font-body); }
+  .demand-tag { display:inline-block; min-width:54px; text-align:center; border-radius:5px; border:1px solid var(--line); padding:4px 6px; font-size:10.5px; font-weight:650; background:var(--bg); color:var(--ink); }
+  .demand-tag.high { font-weight:800; border-width:2px; }
+  .demand-tag.medium { font-weight:650; }
+  .demand-tag.low { font-weight:400; border-style:dashed; }
+  .demand-tag.none { color:var(--ink-faint); }
+  .date-entry { display:grid; grid-template-columns:1.1fr 1fr .8fr auto; gap:7px; padding:8px 0; border-bottom:1px solid var(--line-soft); }
+  .date-entry input,.date-entry select { padding:7px; border:1px solid var(--line); border-radius:6px; min-width:0; }
+  @media(max-width:1100px){.page-tabs-wrap{flex-direction:column;align-items:stretch}.page-tabs{flex-wrap:wrap}}
+
+  @media (max-width:900px){
+    .kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .summary-grid { grid-template-columns:1fr; }
+    .page-tabs-wrap { align-items:flex-start; flex-direction:column; }
+  }
+
+
+
+  /* ---- Main ---- */
+
+  .main { flex:1; display:flex; flex-direction:column; min-width:0; }
+
+  .topbar { padding:20px 26px 14px; border-bottom:1px solid var(--line); background:var(--surface); display:flex; justify-content:space-between; align-items:flex-start; gap:20px; }
+
+  .topbar h2 { font-family:var(--font-head); font-weight:600; font-size:17px; margin:0 0 3px; }
+
+  .topbar p { margin:0; color:var(--ink-soft); font-size:12.5px; max-width:640px; }
+
+
+
+  /* view switch */
+
+  .view-switch-wrap { display:flex; justify-content:flex-end; padding:12px 26px 0; background:var(--surface); }
+  .view-switch { display:flex; background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:3px; flex-shrink:0; }
+
+  .view-switch button { border:none; background:none; font-family:var(--font-body); font-size:12.5px; font-weight:500; color:var(--ink-soft); padding:6px 12px; border-radius:6px; cursor:pointer; white-space:nowrap; }
+
+  .view-switch button.active { background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,0.06); }
+
+
+
+  .grid-scroll { flex:1; overflow:auto; padding:22px 26px 40px; }
+
+  .grid-wrap { position:relative; }
+
+  .grid-inner { position:relative; width:max-content; }
+
+
+
+  /* ---- shared quarter header ---- */
+
+  .qhead-row { display:flex; position:sticky; top:0; z-index:6; background:var(--bg); }
+
+  .qhead-row .corner { width:var(--label-w); flex-shrink:0; position:sticky; left:0; z-index:7; background:var(--bg); }
+
+  .qhead { width:var(--col-w); flex-shrink:0; padding:0 6px 10px; }
+
+  .qhead.now .qlabel { color:var(--accent); }
+
+  .qhead .qlabel { font-family:var(--font-head); font-size:14px; font-weight:600; }
+
+  .qhead .qcount { color:var(--ink-faint); font-size:11.5px; margin-top:1px; }
+
+
+
+  /* ================= PROJECT (swimlane) VIEW ================= */
+
+  .proj-body { position:relative; }
+
+  .proj-row { display:flex; align-items:stretch; position:relative; height:56px; }
+
+  .proj-row:hover .plane-bg { background:rgba(23,63,115,0.05); }
+
+  .proj-row.selected .plane-bg { background:rgba(23,63,115,0.10); }
+
+  .proj-head { width:var(--label-w); flex-shrink:0; padding:0 14px 0 0; display:flex; align-items:center; gap:9px; position:sticky; left:0; z-index:4; background:var(--bg); cursor:pointer; }
+
+  .proj-head .swatch { width:9px; height:26px; border-radius:3px; flex-shrink:0; }
+
+  .proj-head .meta { min-width:0; width:100%; overflow:hidden; }
+
+  .proj-head .pname { display:block; font-weight:600; font-size:13px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .proj-head .ploc { display:block; max-width:100%; font-size:11px; color:var(--ink-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .proj-row.dim .proj-head, .proj-row.dim .plane { opacity:0.32; }
+
+
+
+  .plane { position:relative; flex:1; }
+
+  .plane-bg { position:absolute; inset:6px 0; border-radius:8px; transition:background 0.12s; }
+
+  /* faint vertical quarter separators */
+
+  .grid-lines { position:absolute; inset:0; pointer-events:none; }
+
+  .grid-lines .vline { position:absolute; top:0; bottom:0; width:1px; background:var(--line-soft); }
+
+  .grid-lines .now-line { position:absolute; top:-4px; bottom:-4px; width:2px; background:var(--accent); opacity:0.5; }
+
+
+
+  .segments { position:absolute; inset:0; }
+
+  .seg-bar { position:absolute; top:50%; transform:translateY(-50%); height:30px; border-radius:7px;
+
+             display:flex; align-items:center; padding:0 9px; font-size:11px; font-weight:500; color:#fff;
+
+             white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+
+  .seg-bar.future { color:#fff; }               /* filled but lighter via alpha overlay */
+
+  .seg-bar .seg-symbol { font-size:13px; font-weight:700; margin-right:6px; flex-shrink:0; line-height:1; }
+  .seg-bar .seg-name { overflow:hidden; text-overflow:ellipsis; }
+
+  .seg-bar .seg-dur { opacity:0.8; font-weight:400; margin-left:6px; flex-shrink:0; }
+
+  .seg-hatch { position:absolute; inset:0; border-radius:7px; pointer-events:none; }
+
+  /* connector between consecutive phase segments */
+
+  .seg-link { position:absolute; top:50%; height:2px; transform:translateY(-50%); pointer-events:none; opacity:0.55; }
+
+
+
+  /* ================= PHASE (original) VIEW ================= */
+
+  .phase-body { position:relative; }
+
+  .phase-row { display:flex; align-items:stretch; position:relative; padding:4px 0; }
+
+  .phead { width:var(--label-w); flex-shrink:0; padding:0 10px 0 0; display:flex; flex-direction:column; justify-content:center; position:sticky; left:0; z-index:4; background:var(--bg); }
+
+  .phead .plabel { font-weight:600; font-size:13.5px; }
+
+  .phead .ptotal { color:var(--ink-faint); font-size:11.5px; margin-top:2px; }
+
+  .lane { position:relative; }
+
+  .lane-cells { display:flex; }
+
+  .lane-cell { width:var(--col-w); flex-shrink:0; border-radius:8px; border:1px solid var(--line-soft); margin:0 5px; background:var(--surface); }
+
+  .bars-layer { position:absolute; inset:0; pointer-events:none; }
+
+  .bar { position:absolute; border-radius:7px; color:#fff; font-size:11.5px; font-weight:500;
+
+         display:flex; align-items:center; padding:0 10px; cursor:pointer; pointer-events:auto;
+
+         white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border:1.5px solid transparent; }
+
+  .bar.selected { border-color:var(--ink); box-shadow:0 0 0 2px rgba(0,0,0,0.10); }
+
+  .bar.faded { opacity:0.22; }
+
+  .bar.ghost { background:transparent !important; border:1.5px dashed currentColor; }
+
+  .bar .bar-dur { opacity:0.75; font-weight:400; margin-left:6px; }
+
+  svg.flow-overlay { position:absolute; top:0; left:0; pointer-events:none; z-index:5; }
+
+
+
+  .empty-state { margin:60px auto; max-width:360px; text-align:center; color:var(--ink-soft); }
+
+  .empty-state h3 { font-family:var(--font-head); color:var(--ink); font-size:18px; margin-bottom:6px; }
+
+
+
+  /* ---- Side panel (unchanged) ---- */
+
+  .panel-backdrop { position:fixed; inset:0; background:rgba(20,26,22,0.25); z-index:10; display:none; }
+
+  .panel-backdrop.open { display:block; }
+
+  .panel { position:fixed; top:0; right:0; height:100%; width:400px; max-width:94vw; background:var(--surface); border-left:1px solid var(--line); z-index:11; transform:translateX(100%); transition:transform 0.22s ease; display:flex; flex-direction:column; }
+
+  .panel.open { transform:translateX(0); }
+
+  .panel-head { padding:20px 22px 14px; border-bottom:1px solid var(--line-soft); display:flex; justify-content:space-between; align-items:center; }
+
+  .panel-head h3 { font-family:var(--font-head); font-size:17px; margin:0; font-weight:600; }
+
+  .close-btn { border:none; background:none; font-size:19px; color:var(--ink-soft); cursor:pointer; line-height:1; padding:4px; }
+
+  .panel-body { flex:1; overflow-y:auto; padding:18px 22px; display:flex; flex-direction:column; gap:14px; }
+
+  .field label { display:block; font-size:12px; color:var(--ink-soft); margin-bottom:5px; }
+
+  .field input, .field select, .field textarea { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:7px; font-family:var(--font-body); font-size:13.5px; color:var(--ink); background:var(--surface); }
+
+  .field textarea { min-height:70px; resize:vertical; }
+
+  .row2 { display:flex; gap:10px; }
+
+  .row2 .field { flex:1; }
+
+  .roadmap { border:1px solid var(--line-soft); border-radius:9px; padding:12px 14px 6px; background:var(--bg); }
+
+  .roadmap .rm-head { font-size:12px; color:var(--ink-soft); margin-bottom:2px; }
+
+  .roadmap .rm-sub { font-size:11.5px; color:var(--ink-faint); margin-bottom:12px; line-height:1.5; }
+
+  .rm-cols { display:flex; gap:8px; font-size:10.5px; color:var(--ink-faint); margin-bottom:6px; padding:0 2px; }
+
+  .rm-cols .c-phase { flex:1; }
+
+  .rm-cols .c-start { width:104px; flex-shrink:0; }
+
+  .rm-cols .c-dur { width:76px; flex-shrink:0; }
+
+  .rm-row { display:flex; align-items:center; gap:8px; margin-bottom:9px; }
+
+  .rm-row .rm-phase { flex:1; font-size:12.5px; font-weight:500; color:var(--ink); }
+
+  .rm-row .rm-start { width:104px; flex-shrink:0; }
+
+  .rm-row .rm-dur { width:76px; flex-shrink:0; }
+
+  .rm-row select { width:100%; padding:7px 8px; border:1px solid var(--line); border-radius:6px; font-family:var(--font-body); font-size:12.5px; background:var(--surface); color:var(--ink); }
+
+  .panel-footer { padding:16px 22px 20px; border-top:1px solid var(--line-soft); display:flex; gap:10px; }
+
+  .btn-primary { flex:1; background:var(--accent); color:#fff; border:none; border-radius:7px; padding:10px; font-size:13.5px; font-weight:500; cursor:pointer; }
+
+  .btn-danger { background:none; border:1px solid var(--line); color:var(--danger); border-radius:7px; padding:10px 14px; font-size:13.5px; cursor:pointer; }
+
+  .req { color:var(--danger); }
+
+</style>
+
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="rail">
+
+    <div>
+
+      <h1>Susquehanna Real Estate &amp; Facilities: Capital Projects Tracker</h1>
+
+    </div>
+
+    <button class="add-btn" onclick="openPanel()">+ Add project</button>
+
+    <div class="rail-section">
+
+      <h2>Locations (click to filter — pick one or several)</h2>
+
+      <div class="loc-list" id="locList"></div>
+
+    </div>
+
+    <div class="rail-section">
+
+      <h2>Resources (click to filter by person)</h2>
+
+      <div class="resource-list" id="resourceList"></div>
+
+    </div>
+
+    <div class="rail-section">
+
+      <h2>Status (click to filter)</h2>
+
+      <div class="status-list" id="statusList"></div>
+
+    </div>
+
+    <div class="rail-section">
+
+      <h2>Phase (click to filter)</h2>
+
+      <div class="phase-filter-list" id="phaseList"></div>
+
+    </div>
+
+    <div id="legendSlot"></div>
+
+    <div class="status-line" id="statusLine">Loading shared data…</div>
+
+  </div>
+
+
+
+  <div class="main">
+
+    <div class="page-tabs-wrap">
+      <div class="page-tabs">
+        <button id="btnSummary" class="active" onclick="setPage('summary')">Summary</button>
+        <button id="btnTable" onclick="setPage('table')">Project Table</button>
+        <button id="btnCapacity" onclick="setPage('capacity')">Priority &amp; Capacity</button>
+        <button id="btnWorkload" onclick="setPage('workload')">Resource Workload</button>
+        <button id="btnRegion" onclick="setPage('region')">Regional Review</button>
+        <button id="btnDates" onclick="setPage('dates')">Key Commitments</button>
+        <button id="btnTimeline" onclick="setPage('timeline')">Timeline</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="table-link" type="button" onclick="downloadPortfolioCSV()" title="Download all project data for team review">Export Portfolio</button>
+        <div class="view-switch timeline-toggle" id="timelineToggle">
+          <button id="btnProject" class="active" onclick="setView('project')">By project</button>
+          <button id="btnPhase" onclick="setView('phase')">By phase</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-scroll">
+
+      <div class="content-wrap" id="gridWrap"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<div class="panel-backdrop" id="backdrop" onclick="closePanel()"></div>
+
+<div class="panel" id="panel">
+
+  <div class="panel-head">
+
+    <h3 id="panelTitle">Add project</h3>
+
+    <button class="close-btn" onclick="closePanel()">✕</button>
+
+  </div>
+
+  <div class="panel-body">
+
+    <div class="field">
+
+      <label>Project name <span class="req">*</span></label>
+
+      <input id="f-name" type="text" placeholder="e.g. Riverside Distribution Center">
+
+    </div>
+
+    <div class="field">
+
+      <label>Locations <span class="req">*</span></label>
+
+      <div class="multi-select">
+        <div class="multi-select-list" id="locationMultiList"></div>
+        <div class="multi-custom">
+          <input id="f-location-custom" type="text" placeholder="Add another location">
+          <button type="button" onclick="addCustomLocation()">Add</button>
+        </div>
+      </div>
+      <div class="selected-locations" id="selectedLocations"></div>
+
+    </div>
+
+    <div class="field">
+
+      <label>Status</label>
+
+      <select id="f-status">
+        <option value="active">Active / Approved</option>
+        <option value="proposed">Proposed / Pending approval</option>
+        <option value="start-pending">Start Pending</option><option value="ongoing">Ongoing</option><option value="on-hold">On Hold</option>
+      </select>
+
+    </div>
+
+
+    <div class="field">
+      <label>Project Type</label>
+      <select id="f-type"><option value="">— not set —</option><option>Capital Project</option><option>Small Project / OpEx</option><option>Transaction</option><option>Strategic Initiative / Process</option></select>
+    </div>
+    <div class="priority-editor">
+      <div class="editor-head">Firm priority</div>
+      
+      <div class="field" style="margin-bottom:10px">
+        <select id="f-priority">
+          <option value="">— not set —</option>
+          <option value="p1">P1 — Critical</option>
+          <option value="p2">P2 — High</option>
+          <option value="p3">P3 — Medium</option>
+          <option value="p4">P4 — Low</option><option value="start-pending">START PENDING</option><option value="on-hold">ON HOLD</option>
+        </select>
+      </div>
+
+      <div class="editor-head" style="margin-top:8px">Why this is a priority</div>
+      
+      <div class="reason-options" id="priorityReasonOptions">
+        <label class="reason-option"><input type="checkbox" value="lease-expiry"> Lease expiry / fixed date</label>
+        <label class="reason-option"><input type="checkbox" value="growth-capacity"> Can't sustain growth / capacity</label>
+        <label class="reason-option"><input type="checkbox" value="owner-visibility"> High visibility to owners / leadership</label>
+        <label class="reason-option"><input type="checkbox" value="swing-space"> Opens swing space / enables another project</label>
+        <label class="reason-option"><input type="checkbox" value="compliance-safety"> Compliance / safety</label>
+        <label class="reason-option"><input type="checkbox" value="asset-condition"> Asset condition / end of life</label>
+        <label class="reason-option"><input type="checkbox" value="business-continuity"> Business / operational continuity</label>
+        <label class="reason-option"><input type="checkbox" value="other"> Other</label>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label>Priority rationale / context</label>
+        <textarea id="f-priority-rationale" placeholder="Optional context, e.g. lease expires Q4 2027; completion frees swing space for Project B."></textarea>
+      </div>
+    </div>
+
+    <div class="team-demand-editor">
+      <div class="editor-head">Team demand</div>
+      
+      <div class="team-demand-grid">
+        <div class="th">Team</div><div class="th">Current</div><div class="th">Forecast</div>
+
+        <datalist id="demand-options"><option value="None"><option value="Low"><option value="Medium"><option value="High"><option value="N/A"><option value="START PENDING"><option value="Pending Start"><option value="ON HOLD"></datalist><div class="team-name">Workplace Design</div>
+        <input id="f-demand-workplace-current" list="demand-options" placeholder="None / Low / Medium / High">
+        <input id="f-demand-workplace-forecast" list="demand-options" placeholder="None / Low / Medium / High">
+
+        <div class="team-name">Project Management</div>
+        <input id="f-demand-pm-current" list="demand-options" placeholder="None / Low / Medium / High">
+        <input id="f-demand-pm-forecast" list="demand-options" placeholder="None / Low / Medium / High">
+
+        <div class="team-name">Technical Facilities</div>
+        <input id="f-demand-tech-current" list="demand-options" placeholder="None / Low / Medium / High">
+        <input id="f-demand-tech-forecast" list="demand-options" placeholder="None / Low / Medium / High">
+
+        <div class="team-name">FM / Move Team</div>
+        <input id="f-demand-fm-current" list="demand-options" placeholder="None / Low / Medium / High">
+        <input id="f-demand-fm-forecast" list="demand-options" placeholder="None / Low / Medium / High">
+      </div>
+    </div>
+
+    <div class="field">
+
+      <label>Current phase <span class="req">*</span></label>
+
+      <select id="f-phase" onchange="renderRoadmap()"></select>
+
+    </div>
+
+
+
+    <div class="roadmap">
+
+      <div class="rm-head">Phase timeline</div>
+
+      <div class="rm-sub">Set the start quarter and duration here, or drag phase bars directly across the timeline after saving.</div>
+
+      <div class="rm-cols"><span class="c-phase">Phase</span><span class="c-start">Starts</span><span class="c-dur">Quarters</span></div>
+
+      <div id="rmRows"></div>
+
+    </div>
+    <div class="resource-editor">
+
+      <div class="resource-editor-head">
+        <div class="resource-editor-title">Resources / people</div>
+        <button type="button" class="resource-add" onclick="addResourceRow()">+ Add person</button>
+      </div>
+
+      <div class="resource-editor-sub">Assign people to this project and optionally enter their allocation percentage.</div>
+
+      <div id="resourceRows"></div>
+
+    </div>
+
+    <div class="field">
+
+      <label>Notes</label>
+
+      <textarea id="f-notes" placeholder="Anything worth flagging — blockers, context, links."></textarea>
+
+    </div>
+
+  </div>
+
+  <div class="panel-footer">
+
+    <button class="btn-danger" id="deleteBtn" style="display:none" onclick="deleteCurrent()">Delete</button>
+
+    <button class="btn-primary" onclick="saveCurrent()">Save</button>
+
+  </div>
+
+</div>
+
+
+
+
+<div id="commitmentBackdrop" onclick="commitmentEditorClose()" style="display:none;position:fixed;inset:0;background:#0006;z-index:60"></div>
+<div id="commitmentEditor" role="dialog" aria-modal="true" aria-label="External commitment editor" style="display:none;position:fixed;right:0;top:0;bottom:0;width:min(520px,100%);background:var(--surface);color:var(--ink);z-index:61;box-shadow:0 0 35px #0003;overflow:auto;padding:24px">
+ <div style="display:flex;justify-content:space-between;align-items:center"><h2 id="commitmentEditorTitle">External driver</h2><button type="button" onclick="commitmentEditorClose()">Close ×</button></div>
+ 
+ <div class="commitment-fields">
+ <label>Commitment / external driver *<input id="c-title" placeholder="e.g., London lease expiration"></label>
+ <label>Critical date *<input id="c-date" type="date"></label>
+ <label>Event type<select id="c-kind"><option>Lease</option><option>Contractual</option><option>Regulatory</option><option>Business</option><option>Other</option></select></label>
+ <label>Location / region<input id="c-location" placeholder="e.g., London / EMEA"></label>
+ <label>Owner<input id="c-owner" placeholder="Person accountable"></label>
+ <label>Related projects — optional (select any)<div id="c-projects" style="max-height:170px;overflow:auto;border:1px solid var(--line);padding:8px;border-radius:8px"></div></label>
+ <label>Notes / implications<textarea id="c-notes" rows="4"></textarea></label>
+ </div>
+ <div style="display:flex;justify-content:space-between;gap:10px;margin-top:20px"><button type="button" class="btn-danger" onclick="deleteCommitment()">Delete commitment</button><button type="button" class="btn-primary" id="saveCommitmentButton" onclick="saveCommitment()">Save commitment</button></div>
+</div>
+<style>.commitment-fields{display:grid;gap:12px}.commitment-fields>label{display:grid;gap:5px;font-size:13px;font-weight:600}.commitment-fields input,.commitment-fields select,.commitment-fields textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);font:inherit}</style>
+<style>
+.sort-header{cursor:pointer;user-select:none;white-space:nowrap}.sort-header:hover{background:var(--line-soft)}
+.project-group-overlay{position:fixed;inset:0;background:#0b203b80;z-index:100;display:flex;justify-content:center;align-items:center;padding:22px}
+.project-group-dialog{width:min(650px,100%);max-height:82vh;overflow:auto;background:var(--surface);color:var(--ink);border-radius:13px;padding:20px;box-shadow:0 20px 60px #0004}
+.group-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.group-head h2{margin:0}
+.project-group-item{display:block;text-align:left;width:100%;background:transparent;border:0;border-bottom:1px solid var(--line-soft);padding:13px 5px;color:var(--ink);cursor:pointer}.project-group-item:hover{background:var(--bg)}
+</style>
+
+<script>
+
+const PHASES = ['Feasibility & Planning','Design / Pre-Con','Construction','Post-Construction'];
+
+const PHASE_SHORT = ['Feasibility','Design','Construction','Post-Con'];
+const PHASE_SYMBOLS = ['◆','▱','▲','✓'];
+
+// Phase colors: a single green-family ramp so a project's line reads as one
+
+// thing changing state, dark (early) -> light (late). Distinct from the
+
+// per-location palette used for the accent swatch.
+
+const PHASE_COLORS = ['#173F73','#315D8F','#6F94BC','#B5C9DE'];
+
+const PHASE_TEXT   = ['#FFFFFF','#FFFFFF','#10243D','#10243D']; // legible text per phase
+
+const LOCATION_PALETTE = ['#173F73','#275A8E','#3B6EA8','#517FB6','#6A92C0','#315275','#436687','#587A9A','#6D8EAC','#809FB9','#234D7F','#386392','#4D78A4','#638DB5','#7AA1C5','#2B4768','#3E5B7C','#54718F','#6B879F','#829CAF'];
+
+const MAX_DURATION = 12;
+
+const STATUSES = [
+  { key:'active', label:'Active / Approved', color:'#173F73' },
+  { key:'proposed', label:'Proposed / Pending approval', color:'#B7832F' },
+  { key:'start-pending', label:'Start Pending', color:'#8E6C3A' },
+  { key:'ongoing', label:'Ongoing', color:'#527A66' },
+  { key:'on-hold', label:'On Hold', color:'#7D8796' },
+];
+
+const PRIORITIES = [
+  { key:'p1', label:'P1 — Critical', short:'P1', color:'#C53A46', rank:1 },
+  { key:'p2', label:'P2 — High', short:'P2', color:'#D77A2A', rank:2 },
+  { key:'p3', label:'P3 — Medium', short:'P3', color:'#C7A33B', rank:3 },
+  { key:'p4', label:'P4 — Low', short:'P4', color:'#6B879F', rank:4 },
+  { key:'start-pending', label:'START PENDING', short:'SP', color:'#8E6C3A', rank:8 },
+  { key:'on-hold', label:'ON HOLD', short:'OH', color:'#7D8796', rank:9 },
+];
+
+const PRIORITY_REASONS = {
+  'lease-expiry':'Lease expiry / fixed date',
+  'growth-capacity':"Can't sustain growth / capacity",
+  'owner-visibility':'High visibility to owners / leadership',
+  'swing-space':'Opens swing space / enables another project',
+  'compliance-safety':'Compliance / safety',
+  'asset-condition':'Asset condition / end of life',
+  'business-continuity':'Business / operational continuity',
+  'other':'Other'
+};
+
+const TEAM_DEFS = [
+  { key:'workplace', label:'Workplace Design', short:'WD' },
+  { key:'pm', label:'Project Management', short:'PM' },
+  { key:'tech', label:'Technical Facilities', short:'TF' },
+  { key:'fm', label:'FM / Move Team', short:'FM' },
+];
+
+const DEMAND_LEVELS = { none:0, low:1, medium:2, high:3 };
+const CURRENT_PHASE_OPTIONS = [
+  'Feasibility & Planning',
+  'Design / Pre-Con',
+  'Construction',
+  'Post-Construction',
+  'N/A (Transaction or Initiative)',
+  'On Hold',
+  'Approval Pending',
+  'In-Progress (Small / OpEx)',
+  'Ongoing',
+  'Ongoing Effort'
+];
+
+
+
+
+
+
+
+const REGIONS = [
+
+  { name: 'Americas', locations: ['Bala - 10 Monument','Bala - 401','NYC - 140 Broadway','NYC - 30HY','NYC - TBD','Chicago','San Francisco','Stamford','West Palm Beach','Florida'] },
+
+  { name: 'EMEA', locations: ['Dublin','Dublin - IC','Dublin - La Touche','London','Israel'] },
+
+  { name: 'APAC', locations: ['Sydney','Hong Kong','Shanghai','Tokyo','Mumbai','Beijing'] },
+
+];
+
+const REGION_ORDER = ['Americas','EMEA','APAC','Other'];
+
+
+
+function regionOf(location){
+
+  const loc=String(location||'').trim();
+  for(const r of REGIONS){ if(r.locations.some(x=>x.toLowerCase()===loc.toLowerCase())) return r.name; }
+  if(/^dublin|^london/i.test(loc)) return 'EMEA';
+  if(/^nyc\b|^bala\b/i.test(loc)) return 'Americas';
+
+  return 'Other';
+
+}
+
+
+function projectLocations(p){
+  if(Array.isArray(p.locations) && p.locations.length) return p.locations.flatMap(loc=>String(loc||'').split(/[\n;]+/).map(x=>x.trim()).filter(Boolean));
+  return p.location ? [p.location] : [];
+}
+
+function primaryLocation(p){
+  return projectLocations(p)[0] || '';
+}
+
+function projectHasLocation(p, name){
+  return projectLocations(p).includes(name);
+}
+
+
+
+let projects = [];
+
+let dimmedLocations = new Set();
+
+let dimmedResources = new Set();
+
+let dimmedStatuses = new Set();
+
+let dimmedPhases = new Set();
+
+let selectedProjectId = null;
+
+let editingId = null;
+let editingSnapshot = null;
+let editingPlanBaseline = null;
+let savingNow = false;
+
+let pageMode = 'summary'; // 'summary' | 'table' | 'capacity' | 'timeline'
+
+let viewMode = 'project'; // timeline mode: 'project' | 'phase'
+
+let tableSearch = '';
+
+
+
+// ---------- quarter helpers ----------
+
+function currentQuarter(){
+
+  const d = new Date();
+
+  return { q: Math.floor(d.getMonth()/3)+1, y: d.getFullYear() };
+
+}
+
+function qIndex(q,y){ return y*4 + (q-1); }
+
+function qKey(q,y){ return y+'-Q'+q; }
+
+function qLabel(q,y){ return 'Q'+q+" '"+String(y).slice(2); }
+
+function phaseIndex(name){ return PHASES.indexOf(name); }
+
+function parseQKey(key){
+
+  if(!key) return null;
+
+  const [y,qs] = key.split('-Q');
+
+  return { y: parseInt(y), q: parseInt(qs) };
+
+}
+
+function keyIndex(key){ const p = parseQKey(key); return p ? qIndex(p.q,p.y) : null; }
+
+
+
+// ---------- data model ----------
+
+function normalizeProject(p){
+
+  if(!Array.isArray(p.resources)) p.resources = [];
+  if(!p.status) p.status = 'active';
+
+  // New fields are additive and optional so existing saved projects remain valid.
+  if(typeof p.priority !== 'string') p.priority = '';
+  if(typeof p.projectType !== 'string') p.projectType = '';
+  if(typeof p.type !== 'string') p.type = p.type || p.projectType || '';
+  if(!Array.isArray(p.milestones)) p.milestones = [];
+  if(!Array.isArray(p.priorityReasons)) p.priorityReasons = [];
+  if(typeof p.priorityRationale !== 'string') p.priorityRationale = '';
+  if(!p.teamDemand || typeof p.teamDemand !== 'object') p.teamDemand = {};
+  TEAM_DEFS.forEach(t=>{
+    if(!p.teamDemand[t.key] || typeof p.teamDemand[t.key] !== 'object') p.teamDemand[t.key] = {};
+    if(p.teamDemand[t.key].current == null || p.teamDemand[t.key].current === '') p.teamDemand[t.key].current = 'None';
+    if(p.teamDemand[t.key].forecast == null || p.teamDemand[t.key].forecast === '') p.teamDemand[t.key].forecast = 'None';
+  });
+
+  if(!Array.isArray(p.locations) || !p.locations.length){
+    p.locations = p.location ? [p.location] : [];
+  }
+  p.location = p.locations[0] || p.location || '';
+
+  if(!p.plan){
+
+    p.plan = {};
+
+    if(p.quarter){ p.plan[p.phase] = { start: qKey(p.quarter.q, p.quarter.y), dur: 1 }; }
+
+    if(p.roadmap){ Object.entries(p.roadmap).forEach(([ph,qk])=>{ if(!p.plan[ph]) p.plan[ph] = { start: qk, dur: 1 }; }); }
+
+    if(p.nextPhase && p.nextQuarter){ const qk = qKey(p.nextQuarter.q, p.nextQuarter.y); if(!p.plan[p.nextPhase]) p.plan[p.nextPhase] = { start: qk, dur: 1 }; }
+
+  }
+
+  return p;
+
+}
+
+
+
+function plannedStops(p){
+
+  const start = phaseIndex(p.phase);
+
+  const stops = [];
+
+  PHASES.forEach((ph, idx)=>{
+
+    const entry = p.plan && p.plan[ph];
+
+    if(idx >= start && entry && entry.start && keyIndex(entry.start)!=null){
+
+      stops.push({ phase: ph, idx, start: entry.start, dur: Math.max(1, entry.dur||1) });
+
+    }
+
+  });
+
+  return stops;
+
+}
+
+
+
+function buildQuarterRange(){
+  const cur = currentQuarter();
+  const startIdx = qIndex(4, 2026);
+  let maxIdx = Math.max(startIdx + 7, qIndex(cur.q,cur.y) + 5);
+
+  projects.forEach(p=>{
+    plannedStops(p).forEach(s=>{
+      const si = keyIndex(s.start);
+      if(si != null) maxIdx = Math.max(maxIdx, si + s.dur - 1);
+    });
+  });
+
+  const list = [];
+  const curIdx = qIndex(cur.q,cur.y);
+  for(let i=startIdx;i<=maxIdx;i++){
+    const y = Math.floor(i/4), q = (i%4)+1;
+    list.push({q,y,key:qKey(q,y),label:qLabel(q,y),idx:i,isNow:i===curIdx});
+  }
+  return list;
+}
+
+
+function orderedLocations(){
+
+  const list = [];
+
+  REGIONS.forEach(r=>{ r.locations.forEach(loc=>{ if(!list.includes(loc)) list.push(loc); }); });
+
+  const custom = [...new Set(projects.flatMap(projectLocations).filter(l=>l && !list.includes(l)))].sort();
+
+  custom.forEach(loc=> list.push(loc));
+
+  return list;
+
+}
+
+function locationColor(name){
+
+  if(!name) return '#8B99AB';
+
+  const idx = orderedLocations().indexOf(name);
+
+  const slot = idx === -1 ? 0 : idx;
+
+  return LOCATION_PALETTE[slot % LOCATION_PALETTE.length];
+
+}
+
+
+function resourceNamesForProject(p){
+  return (p.resources || []).map(r => (r && r.name ? String(r.name).trim() : '')).filter(Boolean);
+}
+
+function resourceInitials(name){
+  return String(name || '').split(/\s+/).filter(Boolean).slice(0,2).map(part=>part[0].toUpperCase()).join('') || '•';
+}
+
+function statusInfo(key){
+  return STATUSES.find(s=>s.key===key) || {key:key||'',label:key||'Not set',color:'#7D8796'};
+}
+
+function statusColor(p){
+  return statusInfo(p.status).color;
+}
+
+function priorityInfo(key){
+  return PRIORITIES.find(x=>x.key===key) || { key:key||'', label:key||'Not set', short:key?String(key).slice(0,2).toUpperCase():'—', color:'#9AA6B5', rank:9 };
+}
+
+function priorityColor(p){ return priorityInfo(p.priority).color; }
+
+function priorityRank(p){ return priorityInfo(p.priority).rank; }
+
+function priorityReasonsForProject(p){
+  return Array.isArray(p.priorityReasons) ? p.priorityReasons.filter(x=>PRIORITY_REASONS[x]) : [];
+}
+
+function teamDemandFor(p, teamKey, period){
+  const value = p.teamDemand && p.teamDemand[teamKey] && p.teamDemand[teamKey][period];
+  return value == null || value === '' ? 'None' : String(value);
+}
+
+function demandMeter(level){return demandTag(level);}
+
+function phaseColorFor(phase){
+  const idx = phaseIndex(phase);
+  return idx>=0 ? PHASE_COLORS[idx] : '#9AA6B5';
+}
+
+function phaseTextColor(phase){
+  const idx = phaseIndex(phase);
+  return idx>=0 ? PHASE_TEXT[idx] : '#FFFFFF';
+}
+
+function isProjectDimmed(p){
+  const locs = projectLocations(p);
+  if(dimmedLocations.size > 0 && (locs.length===0 || locs.every(loc=>dimmedLocations.has(loc)))) return true;
+
+  if(dimmedResources.size > 0){
+    const names = resourceNamesForProject(p);
+    if(names.length === 0 || names.every(name => dimmedResources.has(name))) return true;
+  }
+
+  if(dimmedStatuses.size > 0 && dimmedStatuses.has(p.status || 'active')) return true;
+
+  if(dimmedPhases.size > 0 && dimmedPhases.has(p.phase || '')) return true;
+
+  return false;
+}
+
+function isProjectDimmedExceptPhase(p){
+  const locs = projectLocations(p);
+  if(dimmedLocations.size > 0 && (locs.length===0 || locs.every(loc=>dimmedLocations.has(loc)))) return true;
+
+  if(dimmedResources.size > 0){
+    const names = resourceNamesForProject(p);
+    if(names.length === 0 || names.every(name => dimmedResources.has(name))) return true;
+  }
+
+  if(dimmedStatuses.size > 0 && dimmedStatuses.has(p.status || 'active')) return true;
+
+  return false;
+}
+
+function visibleProjects(){
+  return projects.filter(p=>!isProjectDimmed(p));
+}
+
+
+
+// ---------- shared Supabase storage ----------
+// Paste your values from Supabase > Connect (or Settings > API Keys).
+// The publishable key is safe to use in browser code. NEVER paste a secret key here.
+const SUPABASE_URL = 'https://cdgeacewcvgdalfyoxni.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_WkA2kvxOi3arrl8ITqGNhA_vCBQci5w';
+
+function supabaseReady(){
+  return SUPABASE_URL.startsWith('https://') &&
+         !SUPABASE_URL.includes('PASTE_') &&
+         SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_');
+}
+
+async function apiRequest(path, options = {}){
+  if(!supabaseReady()) throw new Error('Supabase is not configured yet.');
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_PUBLISHABLE_KEY,
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+  if(!res.ok){
+    const msg = await res.text();
+    throw new Error(msg || `Supabase request failed (${res.status})`);
+  }
+  if(res.status === 204) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+async function loadProjects(){
+  if(!supabaseReady()){
+    projects = [];
+    document.getElementById('statusLine').textContent = 'Setup needed — add your Supabase URL and publishable key in index.html';
+    render();
+    return;
+  }
+  try{
+    const rows = await apiRequest('projects?select=data&order=updated_at.asc');
+    projects = (rows || []).map(r => r.data).filter(Boolean);
+    projects.forEach(normalizeProject);
+    document.getElementById('statusLine').textContent = 'Synced • shared data';
+  }catch(e){
+    console.error(e);
+    projects = projects || [];
+    document.getElementById('statusLine').textContent = 'Could not load shared data — check Supabase setup';
+  }
+  render();
+}
+
+async function saveProjectRemote(project){
+  await apiRequest('projects?on_conflict=id', {
+    method: 'POST',
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify([{
+      id: project.id,
+      data: project,
+      updated_at: new Date().toISOString()
+    }])
+  });
+  document.getElementById('statusLine').textContent = 'Saved • shared with everyone who opens this tool';
+}
+
+async function deleteProjectRemote(id){
+  await apiRequest(`projects?id=eq.${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { 'Prefer': 'return=minimal' }
+  });
+  document.getElementById('statusLine').textContent = 'Deleted • shared data updated';
+}
+
+async function fetchFreshProjects(){
+  const rows = await apiRequest('projects?select=data&order=updated_at.asc');
+  const fresh = (rows || []).map(r => r.data).filter(Boolean);
+  fresh.forEach(normalizeProject);
+  return fresh;
+}
+
+// ---------- option lists ----------
+
+function quarterOptionsHTML(includeNone){
+  const opts = [];
+  const startIdx = qIndex(4, 2026);
+  const cur = currentQuarter();
+  const endIdx = Math.max(startIdx + 16, qIndex(cur.q,cur.y) + 16);
+
+  for(let idx=startIdx; idx<=endIdx; idx++){
+    const y = Math.floor(idx/4), q=(idx%4)+1;
+    opts.push(`<option value="${qKey(q,y)}">${qLabel(q,y)}</option>`);
+  }
+
+  return (includeNone ? '<option value="">— not set —</option>' : '') + opts.join('');
+}
+
+function durationOptionsHTML(){
+
+  let o = '';
+
+  for(let n=1;n<=MAX_DURATION;n++) o += `<option value="${n}">${n}</option>`;
+
+  return o;
+
+}
+
+function populateSelects(){
+
+  document.getElementById('f-phase').innerHTML = '<option value="">— not set —</option>' + CURRENT_PHASE_OPTIONS.map(p=>`<option value="${p}">${p}</option>`).join('');
+
+}
+
+
+
+function allAvailableLocations(){
+  const list = [];
+  REGIONS.forEach(r=>r.locations.forEach(loc=>{ if(!list.includes(loc)) list.push(loc); }));
+  projects.flatMap(projectLocations).forEach(loc=>{ if(loc && !list.includes(loc)) list.push(loc); });
+  return list;
+}
+
+function buildLocationMulti(currentValues){
+  const selected = new Set(Array.isArray(currentValues) ? currentValues : (currentValues ? [currentValues] : []));
+  const container = document.getElementById('locationMultiList');
+  const known = allAvailableLocations();
+  const custom = known.filter(loc=>regionOf(loc)==='Other');
+
+  let html = '';
+  REGIONS.forEach(r=>{
+    html += `<div class="multi-region">${r.name}</div>`;
+    r.locations.forEach(loc=>{
+      html += `<label class="multi-option"><input type="checkbox" value="${escAttr(loc)}" ${selected.has(loc)?'checked':''} onchange="renderSelectedLocations()"> <span>${loc}</span></label>`;
+    });
+  });
+
+  if(custom.length){
+    html += `<div class="multi-region">Other</div>`;
+    custom.sort().forEach(loc=>{
+      html += `<label class="multi-option"><input type="checkbox" value="${escAttr(loc)}" ${selected.has(loc)?'checked':''} onchange="renderSelectedLocations()"> <span>${loc}</span></label>`;
+    });
+  }
+
+  container.innerHTML = html;
+  renderSelectedLocations();
+}
+
+function getLocationValues(){
+  return [...document.querySelectorAll('#locationMultiList input[type="checkbox"]:checked')].map(x=>x.value);
+}
+
+function renderSelectedLocations(){
+  const selected = getLocationValues();
+  const el = document.getElementById('selectedLocations');
+  el.innerHTML = selected.map(loc=>`<span class="location-chip">${loc}</span>`).join('');
+}
+
+function addCustomLocation(){
+  const input = document.getElementById('f-location-custom');
+  const value = input.value.trim();
+  if(!value) return;
+
+  const current = getLocationValues();
+  if(!current.includes(value)) current.push(value);
+
+  const knownProjects = projects.map(p=>({ ...p, locations: projectLocations(p) }));
+  buildLocationMulti(current);
+  input.value = '';
+
+  // If brand new, add a checked custom option immediately.
+  if(!allAvailableLocations().includes(value)){
+    const container = document.getElementById('locationMultiList');
+    let other = [...container.querySelectorAll('.multi-region')].find(x=>x.textContent==='Other');
+    if(!other){
+      container.insertAdjacentHTML('beforeend', `<div class="multi-region">Other</div>`);
+    }
+    container.insertAdjacentHTML('beforeend',
+      `<label class="multi-option"><input type="checkbox" value="${escAttr(value)}" checked onchange="renderSelectedLocations()"> <span>${value}</span></label>`);
+    renderSelectedLocations();
+  }
+}
+
+function escAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function renderResourceEditor(resources){
+  const rows = document.getElementById('resourceRows');
+  const list = Array.isArray(resources) ? resources : [];
+
+  if(list.length === 0){
+    rows.innerHTML = '<div class="resource-empty">No one assigned yet.</div>';
+    return;
+  }
+
+  rows.innerHTML = list.map(r => `
+    <div class="resource-row">
+      <input type="text" data-role="resource-name" placeholder="Person name" value="${escAttr(r.name || '')}">
+      <input type="number" data-role="resource-allocation" min="0" max="200" step="5" placeholder="%" value="${r.allocation ?? ''}" title="Allocation %">
+      <button type="button" class="resource-remove" onclick="removeResourceRow(this)" title="Remove">×</button>
+    </div>
+  `).join('');
+}
+
+function addResourceRow(){
+  const rows = document.getElementById('resourceRows');
+  if(rows.querySelector('.resource-empty')) rows.innerHTML = '';
+
+  rows.insertAdjacentHTML('beforeend', `
+    <div class="resource-row">
+      <input type="text" data-role="resource-name" placeholder="Person name">
+      <input type="number" data-role="resource-allocation" min="0" max="200" step="5" placeholder="%" title="Allocation %">
+      <button type="button" class="resource-remove" onclick="removeResourceRow(this)" title="Remove">×</button>
+    </div>
+  `);
+
+  rows.querySelector('.resource-row:last-child input[data-role="resource-name"]').focus();
+}
+
+function removeResourceRow(btn){
+  btn.closest('.resource-row').remove();
+  const rows = document.getElementById('resourceRows');
+  if(!rows.querySelector('.resource-row')) rows.innerHTML = '<div class="resource-empty">No one assigned yet.</div>';
+}
+
+function collectResourcesFromForm(){
+  const resources = [];
+  const originalResources=editingSnapshot?.resources||[];
+  document.querySelectorAll('#resourceRows .resource-row').forEach(row=>{
+    const name = row.querySelector('[data-role="resource-name"]').value.trim();
+    const raw = row.querySelector('[data-role="resource-allocation"]').value;
+    if(!name) return;
+    const allocation = raw === '' ? null : Math.max(0, Math.min(200, parseInt(raw,10) || 0));
+    const before=originalResources.find(r=>String(r.name||'').trim().toLowerCase()===name.toLowerCase());
+    resources.push({...before,name,allocation});
+  });
+
+  const merged = new Map();
+  resources.forEach(r=>{
+    const key = r.name.toLowerCase();
+    if(!merged.has(key)) merged.set(key, r);
+    else if(r.allocation != null) merged.get(key).allocation = r.allocation;
+  });
+  return [...merged.values()];
+}
+
+
+
+// ---------- roadmap / plan editor ----------
+
+function collectPlanFromForm(){
+
+  const plan = {};
+
+  document.querySelectorAll('#rmRows .rm-row[data-phase]').forEach(row=>{
+
+    const ph = row.dataset.phase;
+
+    const startSel = row.querySelector('select[data-role="start"]');
+
+    const durSel = row.querySelector('select[data-role="dur"]');
+
+    if(startSel && startSel.value){ plan[ph] = { start: startSel.value, dur: parseInt(durSel.value)||1 }; }
+
+  });
+
+  return plan;
+
+}
+
+function renderRoadmap(existingPlan){
+
+  const container = document.getElementById('rmRows');
+
+  const current = existingPlan || collectPlanFromForm();
+
+  const curPhase = document.getElementById('f-phase').value;
+
+  const startIdx = phaseIndex(curPhase);
+  if(!curPhase){container.innerHTML='<div class="resource-empty">Select a phase first.</div>';return;}
+  if(startIdx===-1){container.innerHTML='<div class="resource-empty">This phase does not require a quarterly roadmap.</div>';return;}
+
+  let html = '';
+
+  PHASES.forEach((ph, idx)=>{
+
+    if(idx < startIdx) return;
+
+    const isCurrent = idx === startIdx;
+
+    html += `<div class="rm-row ${isCurrent?'is-current':''}" data-phase="${ph}">
+
+      <div class="rm-phase">${ph}</div>
+
+      <div class="rm-start"><select data-role="start">${quarterOptionsHTML(!isCurrent)}</select></div>
+
+      <div class="rm-dur"><select data-role="dur">${durationOptionsHTML()}</select></div>
+
+    </div>`;
+
+  });
+
+  container.innerHTML = html;
+
+  container.querySelectorAll('.rm-row[data-phase]').forEach(row=>{
+
+    const ph = row.dataset.phase;
+
+    const entry = current[ph] || {};
+
+    const startSel = row.querySelector('select[data-role="start"]');
+
+    const durSel = row.querySelector('select[data-role="dur"]');
+
+    if(entry.start){ startSel.value = entry.start; }
+
+    else if(curPhase && ph === curPhase){
+      const cur = currentQuarter();
+      const idx = Math.max(qIndex(cur.q,cur.y), qIndex(4,2026));
+      const y = Math.floor(idx/4), q=(idx%4)+1;
+      startSel.value = qKey(q,y);
+    }
+
+    durSel.value = entry.dur || 1;
+
+  });
+
+}
+
+
+
+
+function projectRegion(p){return regionOf(primaryLocation(p));}
+function typeOf(p){ const value=p.type||p.projectType||''; return value==='FM / OpEx'?'Small Project / OpEx':value==='Strategic Initiative'?'Strategic Initiative / Process':value||'Not categorized';}
+function demandTag(level){const value=String(level||'None').trim();const key=value.toLowerCase();const safe=escAttr(value);return `<span class="demand-tag ${Object.hasOwn(DEMAND_LEVELS,key)?key:'other'}">${key==='none'?'—':escAttr(value.charAt(0).toUpperCase()+value.slice(1))}</span>`;}
+function contractorName(name){return ['cait harding','christina reggio','kathleen bellus'].includes(String(name||'').trim().toLowerCase());}
+function renderWorkload(){
+ const shown=visibleProjects(), map=new Map();
+ shown.forEach(p=>(p.resources||[]).forEach(r=>{
+  const name=String(r.name||'').trim();if(!name)return;
+  const key=name.toLowerCase();if(!map.has(key))map.set(key,{name,ps:[]});
+  const x=map.get(key);x.ps.push(p);
+ }));
+ const people=[...map.values()].sort((a,b)=>b.ps.length-a.ps.length||a.name.localeCompare(b.name));
+ const rows=people.map(x=>{const high=x.ps.filter(p=>TEAM_DEFS.some(t=>String(teamDemandFor(p,t.key,'current')).toLowerCase()==='high')).length;
+ return `<tr><td><strong>${x.name}${contractorName(x.name)?' *contractor':''}</strong></td><td>${x.ps.length}</td><td>${high}</td><td>${x.ps.map(p=>`<button class="table-link" style="margin:2px" onclick="openPanel(projects.find(x=>x.id==='${p.id}'))">${p.name}</button>`).join('')}</td></tr>`;}).join('');
+ const teamRows=TEAM_DEFS.map(t=>{const eligible=shown.filter(p=>!(t.key==='fm'&&projectRegion(p)!=='Americas'));
+ const counts=['none','low','medium','high'].map(level=>eligible.filter(p=>String(teamDemandFor(p,t.key,'current')).toLowerCase()===level).length);
+ const forecast=['none','low','medium','high'].map(level=>eligible.filter(p=>String(teamDemandFor(p,t.key,'forecast')).toLowerCase()===level).length);
+ return `<tr><td>${t.label}</td><td colspan="2">${['none','low','medium','high'].map((l,i)=>`${demandTag(l)} ${counts[i]}`).join(' · ')}</td><td colspan="2">${['none','low','medium','high'].map((l,i)=>`${demandTag(l)} ${forecast[i]}`).join(' · ')}</td></tr>`;}).join('');
+ document.getElementById('gridWrap').innerHTML=`<div class="table-shell"><div class="summary-head"><div><h2>Resource Workload</h2></div></div><div class="compact-panel"><h3>Team demand — current vs forecast</h3><div class="project-table-wrap"><table class="project-table"><thead><tr><th>Team</th><th colspan="2">Current</th><th colspan="2">Forecast</th></tr></thead><tbody>${teamRows}</tbody></table></div></div><div class="compact-panel"><h3>Assigned people</h3><div class="project-table-wrap"><table class="project-table"><thead><tr><th>Name</th><th>Projects</th><th>High-demand projects*</th><th>Project links</th></tr></thead><tbody>${rows||'<tr><td colspan="4">No people assigned.</td></tr>'}</tbody></table></div></div></div>`;
+}
+let regionChoice='All';
+function setRegionChoice(v){regionChoice=v;renderRegion();}
+function renderRegion(){
+ const shown=visibleProjects().filter(p=>regionChoice==='All'||projectLocations(p).some(loc=>regionOf(loc)===regionChoice));
+ const locs=[...new Set(shown.flatMap(p=>projectLocations(p).filter(loc=>regionChoice==='All'||regionOf(loc)===regionChoice)))].sort();
+ const rows=locs.map(loc=>{const ps=shown.filter(p=>projectLocations(p).includes(loc));
+ return `<tr><td><strong>${regionOf(loc)==='Other'?'Other / '+loc:regionOf(loc)+' / '+loc}</strong></td><td>${ps.length}</td><td>${ps.filter(p=>p.priority==='p1').length}</td><td>${ps.filter(p=>p.status==='on-hold').length}</td><td>${ps.map(p=>`<button class="table-link" style="margin:2px" onclick="openPanel(projects.find(x=>x.id==='${p.id}'))">${p.name}</button>`).join('')}</td></tr>`;}).join('');
+ document.getElementById('gridWrap').innerHTML=`<div class="table-shell"><div class="summary-head"><div><h2>Regional Review</h2></div><select class="compact-select" onchange="setRegionChoice(this.value)">${['All','Americas','EMEA','APAC'].map(r=>`<option ${r===regionChoice?'selected':''}>${r}</option>`).join('')}</select></div><div class="kpi-grid"><div class="kpi-card"><div class="kpi-value">${shown.length}</div><div class="kpi-label">Projects</div></div><div class="kpi-card"><div class="kpi-value">${locs.length}</div><div class="kpi-label">Locations</div></div><div class="kpi-card"><div class="kpi-value">${shown.filter(p=>p.priority==='p1').length}</div><div class="kpi-label">P1 priority</div></div><div class="kpi-card"><div class="kpi-value">${shown.filter(p=>p.status==='on-hold').length}</div><div class="kpi-label">On hold</div></div></div><div class="compact-panel"><h3>${regionChoice==='All'?'Locations across Americas, EMEA & APAC':'Locations in '+regionChoice}</h3><div class="project-table-wrap"><table class="project-table"><thead><tr><th>Location</th><th>Projects</th><th>P1</th><th>On hold</th><th>Open projects</th></tr></thead><tbody>${rows||'<tr><td colspan="5">No projects in this region.</td></tr>'}</tbody></table></div></div><p style="font-size:12px;color:var(--ink-soft)">${regionChoice==='All'?'FM / Move applies to Americas only.':regionChoice==='Americas'?'FM / Move Team is included for Americas.':'FM / Move Team is not applicable in this region and is excluded.'}</p></div>`;
+}
+// Standalone external commitments are stored in their own Supabase table.
+// Existing project.milestones are displayed below as legacy dates but never erased.
+let commitments=[];
+let commitmentsReady=false;
+let commitmentsError='';
+let editingCommitmentId=null;
+let editingCommitmentVersion=null;
+let savingCommitment=false;
+let commitmentsLoaded=false;
+function safeText(value){return escAttr(String(value??'')).replace(/'/g,'&#39;');}
+async function loadCommitments(){
+ try{
+  const records=await apiRequest('external_commitments?select=id,data,updated_at&order=updated_at.asc');
+  commitments=(records||[]).map(row=>({...row.data,id:row.id,_updated_at:row.updated_at}));
+  commitmentsReady=true;commitmentsError='';commitmentsLoaded=true;
+ }catch(e){
+  console.error('External commitments unavailable',e);
+  commitmentsReady=false;commitmentsError='The separate commitments register is not connected yet. Create the external_commitments table using the supplied setup SQL. No project data has been changed.';
+ }
+ if(pageMode==='dates') renderDates();
+}
+function commitmentProjectNames(c){
+ return (c.project_ids||[]).map(id=>projects.find(p=>p.id===id)?.name||'Unlinked project').join(', ')||'None — external driver';
+}
+function commitmentEditorOpen(id=null, prefill=null){
+ if(!commitmentsReady){alert(commitmentsError||'Commitment table unavailable.');return;}
+ const c=id?commitments.find(x=>x.id===id):prefill||{};
+ if(id&&!c)return;
+ editingCommitmentId=id;
+ editingCommitmentVersion=c._updated_at||null;
+ document.getElementById('commitmentEditorTitle').textContent=id?'Edit external driver':'Add external driver';
+ document.getElementById('c-title').value=c.title||'';
+ document.getElementById('c-date').value=c.date||'';
+ document.getElementById('c-kind').value=c.kind||'Lease';
+ document.getElementById('c-location').value=c.location||'';
+ document.getElementById('c-owner').value=c.owner||'';
+
+ document.getElementById('c-notes').value=c.notes||'';
+ document.getElementById('c-projects').innerHTML=[...projects].sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<label style="display:block;padding:5px 2px"><input type="checkbox" value="${safeText(p.id)}" ${(c.project_ids||[]).includes(p.id)?'checked':''}> ${safeText(p.name)}</label>`).join('');
+ document.getElementById('commitmentBackdrop').style.display='block';
+ document.getElementById('commitmentEditor').style.display='block';
+}
+function commitmentEditorClose(){
+ document.getElementById('commitmentBackdrop').style.display='none';
+ document.getElementById('commitmentEditor').style.display='none';
+ editingCommitmentId=null;editingCommitmentVersion=null;
+}
+async function saveCommitment(){
+ if(savingCommitment)return;
+ const title=document.getElementById('c-title').value.trim();
+ const date=document.getElementById('c-date').value;
+ if(!title||!date){alert('Enter a commitment name and critical date.');return;}
+ const data={title,date,kind:document.getElementById('c-kind').value,location:document.getElementById('c-location').value.trim(),owner:document.getElementById('c-owner').value.trim(),status:(editingCommitmentId?(commitments.find(c=>c.id===editingCommitmentId)?.status||'Open'):'Open'),notes:document.getElementById('c-notes').value.trim(),project_ids:[...document.querySelectorAll('#c-projects input:checked')].map(x=>x.value)};
+ const btn=document.getElementById('saveCommitmentButton');savingCommitment=true;btn.disabled=true;btn.textContent='Saving…';
+ try{
+  if(editingCommitmentId){
+   const records=await apiRequest(`external_commitments?select=updated_at&id=eq.${encodeURIComponent(editingCommitmentId)}`);
+   if(records?.length!==1||records[0].updated_at!==editingCommitmentVersion){alert('Someone else changed this commitment. Nothing was overwritten. Close and reopen it.');return;}
+   const result=await apiRequest(`external_commitments?id=eq.${encodeURIComponent(editingCommitmentId)}&updated_at=eq.${encodeURIComponent(editingCommitmentVersion)}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({data,updated_at:new Date().toISOString()})});
+   if(result?.length!==1){alert('A simultaneous edit was detected. Your changes were not saved. Reopen and retry.');return;}
+  }else{
+   await apiRequest('external_commitments',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify({id:'c'+Date.now()+Math.random().toString(36).slice(2,7),data,updated_at:new Date().toISOString()})});
+  }
+  commitmentEditorClose();await loadCommitments();
+  document.getElementById('statusLine').textContent='External commitment saved • shared with team';
+ }catch(e){console.error(e);alert('Commitment save failed. No confirmed changes; leave the editor open and check setup or connection.');}
+ finally{savingCommitment=false;btn.disabled=false;btn.textContent='Save commitment';}
+}
+async function deleteCommitment(){
+ if(!editingCommitmentId||!confirm('Delete this external commitment? This does not delete any projects.'))return;
+ try{
+  const result=await apiRequest(`external_commitments?id=eq.${encodeURIComponent(editingCommitmentId)}&updated_at=eq.${encodeURIComponent(editingCommitmentVersion)}`,{method:'DELETE',headers:{Prefer:'return=representation'}});
+  if(result?.length!==1){alert('Commitment was changed by someone else; it was not deleted.');return;}
+  commitmentEditorClose();await loadCommitments();
+ }catch(e){console.error(e);alert('Could not delete commitment.');}
+}
+let commitmentSort='date',commitmentAsc=true;
+function sortCommitments(key){if(commitmentSort===key)commitmentAsc=!commitmentAsc;else{commitmentSort=key;commitmentAsc=true;}renderDates();}
+function commitmentValue(c,key){return key==='projects'?commitmentProjectNames(c):String(c[key]||'');}
+function commitmentHeader(key,label){return `<th class="sort-header" onclick="sortCommitments('${key}')">${label}${commitmentSort===key?(commitmentAsc?' ▲':' ▼'):' ↕'}</th>`;}
+function renderDates(){
+ const rows=[...commitments].sort((a,b)=>{const cmp=commitmentValue(a,commitmentSort).localeCompare(commitmentValue(b,commitmentSort),undefined,{numeric:true});return (commitmentAsc?cmp:-cmp)||String(a.title||'').localeCompare(String(b.title||''));}).map(c=>`<tr><td>${safeText(c.date)}</td><td><strong>${safeText(c.title)}</strong></td><td>${safeText(c.kind)}</td><td>${safeText(c.location)}</td><td>${safeText(c.owner)}</td><td>${safeText(commitmentProjectNames(c))}</td><td><button class="table-link" onclick="commitmentEditorOpen('${safeText(c.id)}')">Edit</button></td></tr>`).join('');
+ const legacy=projects.flatMap(p=>(p.milestones||[]).filter(m=>m.title&&m.date).map(m=>({...m,p}))).sort((a,b)=>a.date.localeCompare(b.date));
+ const legacyRows=legacy.map((m,i)=>`<tr><td>${safeText(m.date)}</td><td>${safeText(m.title)}</td><td>${safeText(m.kind||'External')}</td><td>${safeText(m.p.name)}</td><td><button class="table-link" ${commitmentsReady?'':'disabled'} onclick="copyLegacyCommitment(${i})">Copy to standalone register</button></td></tr>`).join('');
+ window._legacyCommitments=legacy;
+ document.getElementById('gridWrap').innerHTML=`<div class="table-shell"><div class="summary-head"><div><h2>Key Commitments &amp; Deadlines</h2></div><button class="btn-primary" onclick="commitmentEditorOpen()" ${commitmentsReady?'':'disabled'}>+ Add external driver</button></div>${commitmentsError?`<div class="compact-panel" style="border-color:#b97b43"><strong>Setup required:</strong> ${safeText(commitmentsError)}</div>`:''}<div class="compact-panel"><h3>Shared external drivers (${commitments.length})</h3><div class="project-table-wrap"><table class="project-table"><thead><tr>${commitmentHeader('date','Critical date')}${commitmentHeader('title','Commitment')}${commitmentHeader('kind','Event type')}${commitmentHeader('location','Location')}${commitmentHeader('owner','Owner')}${commitmentHeader('projects','Related projects (optional)')}<th></th></tr></thead><tbody>${rows||'<tr><td colspan="7">No standalone commitments saved yet.</td></tr>'}</tbody></table></div></div>${legacy.length?`<div class="compact-panel"><h3>Existing project-specific dates (${legacy.length}) — retained for reference</h3><div class="project-table-wrap"><table class="project-table"><thead><tr><th>Date</th><th>Title</th><th>Type</th><th>Original project</th><th></th></tr></thead><tbody>${legacyRows}</tbody></table></div></div>`:''}</div>`;
+}
+function copyLegacyCommitment(i){
+ const m=window._legacyCommitments?.[i];if(!m)return;
+ commitmentEditorOpen(null,{title:m.title,date:m.date,kind:m.kind==='Internal'?'Business':'Other',project_ids:[m.p.id],location:projectLocations(m.p).join(', ')});
+}
+
+// ---------- panel ----------
+
+function openPanel(project){
+
+  editingId = project ? project.id : null;
+  editingSnapshot = project ? JSON.parse(JSON.stringify(project)) : null;
+
+  document.getElementById('panelTitle').textContent = project ? 'Edit project' : 'Add project';
+
+  document.getElementById('deleteBtn').style.display = 'none';
+
+  document.getElementById('f-name').value = project ? project.name : '';
+
+  document.getElementById('f-phase').value = project ? (project.phase || '') : '';
+
+  document.getElementById('f-status').value = project ? (project.status || 'active') : 'active';
+
+  document.getElementById('f-type').value = project ? (project.type || project.projectType || '') : '';
+
+  document.getElementById('f-priority').value = project ? (project.priority || '') : '';
+  document.getElementById('f-priority-rationale').value = project ? (project.priorityRationale || '') : '';
+
+  const selectedReasons = new Set(project ? priorityReasonsForProject(project) : []);
+  document.querySelectorAll('#priorityReasonOptions input[type="checkbox"]').forEach(cb=>{
+    cb.checked = selectedReasons.has(cb.value);
+  });
+
+  TEAM_DEFS.forEach(t=>{
+    document.getElementById(`f-demand-${t.key}-current`).value = project ? teamDemandFor(project,t.key,'current') : 'none';
+    document.getElementById(`f-demand-${t.key}-forecast`).value = project ? teamDemandFor(project,t.key,'forecast') : 'none';
+  });
+
+  document.getElementById('f-notes').value = project ? (project.notes||'') : '';
+
+  buildLocationMulti(project ? projectLocations(project) : []);
+
+  renderResourceEditor(project ? JSON.parse(JSON.stringify(project.resources||[])) : []);
+
+  renderRoadmap(project ? JSON.parse(JSON.stringify(project.plan||{})) : {});
+  editingPlanBaseline=JSON.parse(JSON.stringify(collectPlanFromForm()));
+
+  document.getElementById('panel').classList.add('open');
+
+  document.getElementById('backdrop').classList.add('open');
+
+}
+
+function closePanel(){
+
+  document.getElementById('panel').classList.remove('open');
+
+  document.getElementById('backdrop').classList.remove('open');
+
+  editingId = null;
+  editingSnapshot = null;
+  editingPlanBaseline = null;
+
+}
+
+// Fetch a row and its version to prevent normal stale writes from overwriting team edits.
+async function getProjectRecord(id){
+ const records=await apiRequest(`projects?select=id,data,updated_at&id=eq.${encodeURIComponent(id)}`);
+ return (records||[])[0]||null;
+}
+const TRACKED_FIELDS=['name','locations','location','type','status','phase','priority','priorityReasons','priorityRationale','teamDemand','plan','notes','resources'];
+function jsonEqual(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+async function saveCurrent(){
+ if(savingNow)return;
+ const name=document.getElementById('f-name').value.trim();
+ const locations=getLocationValues();
+ if(!name||!locations.length){alert('Please enter a project name and location.');return;}
+ const phase=document.getElementById('f-phase').value;
+ if(!phase){alert('Please select the current phase.');return;}
+ const currentPlan=collectPlanFromForm();
+ if(PHASES.includes(phase)&&(!currentPlan[phase]||!currentPlan[phase].start)){
+  alert('Please select a starting quarter for the current phase.');return;
+ }
+ const teamDemand={}; TEAM_DEFS.forEach(t=>{
+  teamDemand[t.key]={current:document.getElementById(`f-demand-${t.key}-current`).value.trim()||'None',forecast:document.getElementById(`f-demand-${t.key}-forecast`).value.trim()||'None'};
+ });
+ const proposed={
+  name,locations,location:locations[0],
+  type:document.getElementById('f-type').value||'',
+  status:document.getElementById('f-status').value||'active',phase,
+  priority:document.getElementById('f-priority').value||'',
+  priorityReasons:[...document.querySelectorAll('#priorityReasonOptions input:checked')].map(x=>x.value),
+  priorityRationale:document.getElementById('f-priority-rationale').value.trim(),
+  teamDemand,notes:document.getElementById('f-notes').value.trim(),
+  resources:collectResourcesFromForm(),
+  plan:editingSnapshot && (!PHASES.includes(phase) || jsonEqual(currentPlan,editingPlanBaseline))
+   ? (editingSnapshot.plan||{})
+   : {...(editingSnapshot?.plan||{}),...currentPlan}
+ };
+ const btn=document.querySelector('.panel-footer .btn-primary');
+ savingNow=true;btn.disabled=true;btn.textContent='Saving…';
+ try{
+  let saved;
+  if(editingId){
+   const row=await getProjectRecord(editingId);
+   if(!row){alert('This project is no longer in the database. Your changes were NOT saved.');return;}
+   const original=editingSnapshot||{};
+   const changes=TRACKED_FIELDS.filter(k=>!jsonEqual(proposed[k],original[k]));
+   if(!changes.length){closePanel();return;}
+   // Retain any property not explicitly edited and refuse a conflicting stale update.
+   const live=JSON.parse(JSON.stringify(row.data||{}));
+   const collisions=changes.filter(k=>!jsonEqual(live[k],original[k]));
+   if(collisions.length){alert('This project changed in another window while you were editing ('+collisions.join(', ')+'). Nothing was overwritten. Close and reopen the project, then re-enter your changes.');return;}
+   saved={...live};changes.forEach(k=>saved[k]=proposed[k]);
+   // Keep both property names compatible across old and new dashboards.
+   if(changes.includes('type'))saved.projectType=proposed.type;
+   const path=`projects?id=eq.${encodeURIComponent(editingId)}&updated_at=eq.${encodeURIComponent(row.updated_at)}`;
+   const written=await apiRequest(path,{
+    method:'PATCH',headers:{Prefer:'return=representation'},
+    body:JSON.stringify({data:saved,updated_at:new Date().toISOString()})
+   });
+   if(!Array.isArray(written)||written.length!==1){alert('Another person saved this project at the same time. Your changes were NOT applied. Close and reopen the project and retry.');return;}
+  }else{
+   saved={id:'p'+Date.now()+Math.random().toString(36).slice(2,7),...proposed,projectType:proposed.type};
+   await saveProjectRemote(saved);
+  }
+  projects=await fetchFreshProjects();
+  closePanel();render();
+  document.getElementById('statusLine').textContent='Saved successfully • shared with the team';
+ }catch(e){console.error(e);alert('Save failed. Please do not close this editor; your changes have not been confirmed.');}
+ finally{savingNow=false;btn.disabled=false;btn.textContent='Save';}
+}
+
+async function deleteCurrent(){
+
+  if(!editingId) return;
+
+  if(!confirm('Delete this project?')) return;
+
+  const idToDelete = editingId;
+
+  try{
+
+    await deleteProjectRemote(idToDelete);
+
+  }catch(e){
+
+    console.error(e);
+
+    alert('Could not delete from the shared database. Check your Supabase setup and try again.');
+
+    return;
+
+  }
+
+  projects = projects.filter(p=>p.id!==idToDelete);
+
+  closePanel();
+
+  render();
+
+}
+
+
+
+// ---------- spreadsheet export ----------
+// This is read-only: it creates a local CSV from the projects already loaded in the browser.
+// It does not update, delete, or overwrite anything in Supabase.
+
+function csvCell(value){
+  const s = value == null ? '' : String(value);
+  return `"${s.replace(/"/g,'""')}"`;
+}
+
+function yesNo(value){
+  return value ? 'Yes' : '';
+}
+
+function phasePlanValue(p, phase, field){
+  const entry = p.plan && p.plan[phase];
+  if(!entry) return '';
+  if(field==='start') return entry.start || '';
+  if(field==='duration') return entry.dur || '';
+  return '';
+}
+
+function resourceNamesExport(p){
+  return (p.resources || [])
+    .map(r=>r && r.name ? String(r.name).trim() : '')
+    .filter(Boolean)
+    .join('; ');
+}
+
+function resourceAllocationsExport(p){
+  return (p.resources || [])
+    .filter(r=>r && r.name)
+    .map(r=>{
+      const name = String(r.name).trim();
+      const allocation = r.allocation == null || r.allocation === '' ? '' : `${r.allocation}%`;
+      return allocation ? `${name}: ${allocation}` : name;
+    })
+    .join('; ');
+}
+
+function downloadPortfolioCSV(){
+  if(!Array.isArray(projects) || projects.length===0){
+    alert('No project data is loaded yet.');
+    return;
+  }
+
+  const headers = [
+    'Project ID (do not edit)',
+    'Project Name',
+    'Region',
+    'Locations',
+    'Status',
+    'Current Phase',
+    'Firm Priority',
+    'Priority - Lease Expiry / Fixed Date',
+    'Priority - Growth / Capacity',
+    'Priority - Owner / Leadership Visibility',
+    'Priority - Opens Swing Space / Enables Another Project',
+    'Priority - Compliance / Safety',
+    'Priority - Asset Condition / End of Life',
+    'Priority - Business / Operational Continuity',
+    'Priority - Other',
+    'Priority Rationale / Context',
+    'Workplace Design - Current Demand',
+    'Workplace Design - Forecast Demand',
+    'Project Management - Current Demand',
+    'Project Management - Forecast Demand',
+    'Technical Facilities - Current Demand',
+    'Technical Facilities - Forecast Demand',
+    'FM / Move Team - Current Demand',
+    'FM / Move Team - Forecast Demand',
+    'Feasibility & Planning - Start',
+    'Feasibility & Planning - Duration (Quarters)',
+    'Design / Pre-Con - Start',
+    'Design / Pre-Con - Duration (Quarters)',
+    'Construction - Start',
+    'Construction - Duration (Quarters)',
+    'Post-Construction - Start',
+    'Post-Construction - Duration (Quarters)',
+    'Resources',
+    'Resource Allocations',
+    'Notes'
+  ];
+
+  const rows = projects
+    .slice()
+    .sort((a,b)=>{
+      const pa = priorityRank(a), pb = priorityRank(b);
+      if(pa!==pb) return pa-pb;
+      return String(a.name||'').localeCompare(String(b.name||''));
+    })
+    .map(p=>{
+      const reasons = new Set(priorityReasonsForProject(p));
+      return [
+        p.id || '',
+        p.name || '',
+        regionOf(primaryLocation(p)),
+        projectLocations(p).join('; '),
+        statusInfo(p.status).label,
+        p.phase || '',
+        p.priority ? priorityInfo(p.priority).label : '',
+        yesNo(reasons.has('lease-expiry')),
+        yesNo(reasons.has('growth-capacity')),
+        yesNo(reasons.has('owner-visibility')),
+        yesNo(reasons.has('swing-space')),
+        yesNo(reasons.has('compliance-safety')),
+        yesNo(reasons.has('asset-condition')),
+        yesNo(reasons.has('business-continuity')),
+        yesNo(reasons.has('other')),
+        p.priorityRationale || '',
+        teamDemandFor(p,'workplace','current'),
+        teamDemandFor(p,'workplace','forecast'),
+        teamDemandFor(p,'pm','current'),
+        teamDemandFor(p,'pm','forecast'),
+        teamDemandFor(p,'tech','current'),
+        teamDemandFor(p,'tech','forecast'),
+        teamDemandFor(p,'fm','current'),
+        teamDemandFor(p,'fm','forecast'),
+        phasePlanValue(p,'Feasibility & Planning','start'),
+        phasePlanValue(p,'Feasibility & Planning','duration'),
+        phasePlanValue(p,'Design / Pre-Con','start'),
+        phasePlanValue(p,'Design / Pre-Con','duration'),
+        phasePlanValue(p,'Construction','start'),
+        phasePlanValue(p,'Construction','duration'),
+        phasePlanValue(p,'Post-Construction','start'),
+        phasePlanValue(p,'Post-Construction','duration'),
+        resourceNamesExport(p),
+        resourceAllocationsExport(p),
+        p.notes || ''
+      ];
+    });
+
+  const csv = '\uFEFF' + [headers, ...rows]
+    .map(row=>row.map(csvCell).join(','))
+    .join('\r\n');
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `capital-projects-portfolio-${stamp}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+
+// ---------- view / page switch ----------
+
+function setPage(mode){
+  pageMode = mode;
+
+  document.getElementById('btnSummary').classList.toggle('active', mode==='summary');
+  document.getElementById('btnTable').classList.toggle('active', mode==='table');
+  document.getElementById('btnCapacity').classList.toggle('active', mode==='capacity');
+  ['Workload','Region','Dates'].forEach(id=>document.getElementById('btn'+id).classList.toggle('active',mode===id.toLowerCase()));
+  document.getElementById('btnTimeline').classList.toggle('active', mode==='timeline');
+  document.getElementById('timelineToggle').classList.toggle('show', mode==='timeline');
+
+  render();
+}
+
+function setView(mode){
+  viewMode = mode;
+
+  document.getElementById('btnProject').classList.toggle('active', mode==='project');
+  document.getElementById('btnPhase').classList.toggle('active', mode==='phase');
+
+  render();
+}
+
+
+
+// ---------- rendering (router) ----------
+
+function render(){
+  renderLocationList();
+  renderResourceList();
+  renderStatusList();
+  renderPhaseList();
+  renderLegend();
+
+  if(pageMode==='summary') renderSummary();
+  else if(pageMode==='table') renderProjectTable();
+  else if(pageMode==='capacity') renderPriorityCapacity();
+  else if(pageMode==='workload') renderWorkload();
+  else if(pageMode==='region') renderRegion();
+  else if(pageMode==='dates') renderDates();
+  else if(viewMode==='project') renderProjectGrid();
+  else renderPhaseGrid();
+}
+
+
+
+function renderLegend(){
+
+  const slot = document.getElementById('legendSlot');
+
+  if(pageMode!=='timeline'){
+    slot.innerHTML = '';
+    return;
+  }
+
+  if(viewMode==='project'){
+
+    let phaseKeys = PHASES.map((ph,i)=>`<div class="key"><strong style="width:26px;text-align:center;font-size:13px">${PHASE_SYMBOLS[i]}</strong> ${ph}</div>`).join('');
+    let statusKeys = STATUSES.map(s=>`<div class="key"><span class="seg" style="background:${s.color}"></span> ${s.label}</div>`).join('');
+
+    slot.innerHTML = `<div class="legend"><div class="phase-legend">
+        <div style="font-weight:600;margin-bottom:6px;color:var(--ink-soft)">Phase symbols</div>
+        ${phaseKeys}
+        <div style="font-weight:600;margin:12px 0 6px;color:var(--ink-soft)">Phase colors</div>
+        ${PHASES.map((ph,i)=>`<div class="key"><span class="seg" style="background:${PHASE_COLORS[i]}"></span> ${ph}</div>`).join('')}
+        <div style="font-weight:600;margin:12px 0 6px;color:var(--ink-soft)">Priority outline / badge</div>
+        ${PRIORITIES.map(x=>`<div class="key"><span class="seg" style="background:${x.color}"></span> ${x.label}</div>`).join('')}
+        <div class="key" style="margin-top:9px"><span class="seg" style="background:repeating-linear-gradient(45deg,#6F94BC,#6F94BC 3px,#B5C9DE 3px,#B5C9DE 6px)"></span> Anticipated (future)</div>
+      </div></div>`;
+
+  } else {
+
+    slot.innerHTML = `<div class="legend">
+
+      <div class="key"><span class="bar-solid"></span> Current phase</div>
+
+      <div class="key"><span class="bar-ghost"></span> Anticipated future phase</div>
+
+      <div class="key"><span class="dash"></span> Path between phases</div>
+
+    </div>`;
+
+  }
+
+}
+
+
+
+function renderLocationList(){
+
+  const locs = {};
+
+  projects.forEach(p=>{ [...new Set(projectLocations(p))].forEach(loc=>{ locs[loc] = (locs[loc]||0)+1; }); });
+
+  const el = document.getElementById('locList');
+
+  const names = Object.keys(locs);
+
+  if(names.length===0){ el.innerHTML = '<div style="color:var(--ink-faint);font-size:12px;">No projects yet</div>'; return; }
+
+  const byRegion = {};
+
+  names.forEach(n=>{ const r = regionOf(n); (byRegion[r] = byRegion[r]||[]).push(n); });
+
+  const anyFilter = dimmedLocations.size > 0;
+
+  let html = `<div class="loc-toolbar">
+
+      <span class="loc-hint">${anyFilter ? 'Showing selected only' : 'Showing all'}</span>
+
+      <button class="loc-showall" onclick="clearLocationFilter()" ${anyFilter?'':'disabled'}>Show all</button>
+
+    </div>`;
+
+  REGION_ORDER.forEach(region=>{
+
+    const list = byRegion[region];
+
+    if(!list || !list.length) return;
+
+    list.sort();
+
+    const regionCount = list.reduce((a,n)=>a+locs[n],0);
+
+    html += `<div class="loc-region"><span>${region}</span><span class="loc-region-count">${regionCount}</span></div>`;
+
+    html += list.map(name=>{
+
+      const shown = !dimmedLocations.has(name);
+
+      const dim = shown ? '' : 'dim';
+
+      const check = shown && anyFilter ? '✓' : '';
+
+      return `<div class="loc-item ${dim}" onclick="toggleLocation('${name.replace(/'/g,"\\\\'")}')">
+
+        <span class="swatch" style="background:${locationColor(name)}"></span>
+
+        <span class="name">${name}</span>
+
+        <span class="loc-check">${check}</span>
+
+        <span class="count">${locs[name]}</span>
+
+      </div>`;
+
+    }).join('');
+
+  });
+
+  el.innerHTML = html;
+
+}
+
+function toggleLocation(name){
+
+  const allNames = [...new Set(projects.flatMap(projectLocations))];
+
+  if(dimmedLocations.size === 0){ allNames.forEach(n=>{ if(n!==name) dimmedLocations.add(n); }); }
+
+  else if(dimmedLocations.has(name)){ dimmedLocations.delete(name); }
+
+  else { dimmedLocations.add(name); }
+
+  if(allNames.every(n=>dimmedLocations.has(n))) dimmedLocations.clear();
+
+  render();
+
+}
+
+function clearLocationFilter(){ dimmedLocations.clear(); render(); }
+
+function renderResourceList(){
+  const counts = {};
+  projects.forEach(p=>{
+    [...new Set(resourceNamesForProject(p))].forEach(name=>{
+      counts[name] = (counts[name] || 0) + 1;
+    });
+  });
+
+  const el = document.getElementById('resourceList');
+  const names = Object.keys(counts).sort((a,b)=>a.localeCompare(b));
+
+  if(names.length === 0){
+    el.innerHTML = '<div style="color:var(--ink-faint);font-size:12px;">No resources assigned yet</div>';
+    return;
+  }
+
+  const anyFilter = dimmedResources.size > 0;
+  let html = `<div class="loc-toolbar">
+    <span class="loc-hint">${anyFilter ? 'Showing selected only' : 'Showing all'}</span>
+    <button class="loc-showall" onclick="clearResourceFilter()" ${anyFilter?'':'disabled'}>Show all</button>
+  </div>`;
+
+  html += names.map(name=>{
+    const shown = !dimmedResources.has(name);
+    const dim = shown ? '' : 'dim';
+    const check = shown && anyFilter ? '✓' : '';
+    return `<div class="resource-item ${dim}" onclick="toggleResource('${name.replace(/'/g,"\\'")}')">
+      <span class="resource-avatar">${resourceInitials(name)}</span>
+      <span class="name">${name}</span>
+      <span class="loc-check">${check}</span>
+      <span class="count">${counts[name]}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = html;
+}
+
+function toggleResource(name){
+  const allNames = [...new Set(projects.flatMap(resourceNamesForProject))];
+
+  if(dimmedResources.size === 0){
+    allNames.forEach(n=>{ if(n !== name) dimmedResources.add(n); });
+  } else if(dimmedResources.has(name)){
+    dimmedResources.delete(name);
+  } else {
+    dimmedResources.add(name);
+  }
+
+  if(allNames.length && allNames.every(n=>dimmedResources.has(n))) dimmedResources.clear();
+  render();
+}
+
+function clearResourceFilter(){
+  dimmedResources.clear();
+  render();
+}
+
+function renderStatusList(){
+  const counts = {};
+  STATUSES.forEach(s=>counts[s.key]=0);
+  projects.forEach(p=>{ counts[p.status || 'active'] = (counts[p.status || 'active'] || 0) + 1; });
+
+  const el = document.getElementById('statusList');
+  const anyFilter = dimmedStatuses.size > 0;
+
+  let html = `<div class="loc-toolbar">
+    <span class="loc-hint">${anyFilter ? 'Showing selected only' : 'Showing all'}</span>
+    <button class="loc-showall" onclick="clearStatusFilter()" ${anyFilter?'':'disabled'}>Show all</button>
+  </div>`;
+
+  html += STATUSES.map(s=>{
+    const shown = !dimmedStatuses.has(s.key);
+    const dim = shown ? '' : 'dim';
+    const check = shown && anyFilter ? '✓' : '';
+    return `<div class="status-item ${dim}" onclick="toggleStatus('${s.key}')">
+      <span class="status-dot" style="background:${s.color}"></span>
+      <span class="name">${s.label}</span>
+      <span class="loc-check">${check}</span>
+      <span class="count">${counts[s.key] || 0}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = html;
+}
+
+function toggleStatus(key){
+  const allKeys = STATUSES.map(s=>s.key);
+
+  if(dimmedStatuses.size === 0){
+    allKeys.forEach(k=>{ if(k !== key) dimmedStatuses.add(k); });
+  } else if(dimmedStatuses.has(key)){
+    dimmedStatuses.delete(key);
+  } else {
+    dimmedStatuses.add(key);
+  }
+
+  if(allKeys.every(k=>dimmedStatuses.has(k))) dimmedStatuses.clear();
+  render();
+}
+
+function clearStatusFilter(){
+  dimmedStatuses.clear();
+  render();
+}
+
+function renderPhaseList(){
+  const counts = {};
+  CURRENT_PHASE_OPTIONS.forEach(ph=>counts[ph]=0);
+  projects.forEach(p=>{ if(p.phase) counts[p.phase] = (counts[p.phase]||0)+1; });
+
+  const el = document.getElementById('phaseList');
+  const anyFilter = dimmedPhases.size > 0;
+
+  let html = `<div class="loc-toolbar">
+    <span class="loc-hint">${anyFilter ? 'Showing selected only' : 'Showing all'}</span>
+    <button class="loc-showall" onclick="clearPhaseFilter()" ${anyFilter?'':'disabled'}>Show all</button>
+  </div>`;
+
+  html += PHASES.map((ph,i)=>{
+    const shown = !dimmedPhases.has(ph);
+    const dim = shown ? '' : 'dim';
+    const check = shown && anyFilter ? '✓' : '';
+    return `<div class="phase-filter-item ${dim}" onclick="togglePhase('${ph.replace(/'/g,"\\'")}')">
+      <span class="phase-filter-symbol">${PHASE_SYMBOLS[i]}</span>
+      <span class="name">${PHASE_SHORT[i]}</span>
+      <span class="loc-check">${check}</span>
+      <span class="count">${counts[ph]||0}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = html;
+}
+
+function togglePhase(name){
+  const allNames = [...PHASES];
+
+  if(dimmedPhases.size === 0){
+    allNames.forEach(n=>{ if(n!==name) dimmedPhases.add(n); });
+  } else if(dimmedPhases.has(name)){
+    dimmedPhases.delete(name);
+  } else {
+    dimmedPhases.add(name);
+  }
+
+  if(allNames.every(n=>dimmedPhases.has(n))) dimmedPhases.clear();
+  render();
+}
+
+function clearPhaseFilter(){
+  dimmedPhases.clear();
+  render();
+}
+
+function focusStatus(key){
+  const allKeys = STATUSES.map(s=>s.key);
+  const currentlyOnly = dimmedStatuses.size===allKeys.length-1 && !dimmedStatuses.has(key);
+  dimmedStatuses.clear();
+  if(!currentlyOnly) allKeys.forEach(k=>{ if(k!==key) dimmedStatuses.add(k); });
+  render();
+}
+
+function focusPhase(phase){
+  const currentlyOnly = dimmedPhases.size===PHASES.length-1 && !dimmedPhases.has(phase);
+  dimmedPhases.clear();
+  if(!currentlyOnly) PHASES.forEach(ph=>{ if(ph!==phase) dimmedPhases.add(ph); });
+  render();
+}
+
+function clearAllFilters(){
+  dimmedLocations.clear();
+  dimmedResources.clear();
+  dimmedStatuses.clear();
+  dimmedPhases.clear();
+  tableSearch = '';
+  render();
+}
+
+function qLabelFromIndex(idx){
+  if(idx==null) return '—';
+  const y = Math.floor(idx/4), q=(idx%4)+1;
+  return qLabel(q,y);
+}
+
+function projectDateRange(p){
+  const stops = plannedStops(p);
+  if(!stops.length) return {start:'—', end:'—'};
+  const first = stops[0];
+  const last = stops[stops.length-1];
+  const s = keyIndex(first.start);
+  const e = keyIndex(last.start) + Math.max(1,last.dur||1) - 1;
+  return {start:qLabelFromIndex(s), end:qLabelFromIndex(e)};
+}
+
+function showProjectGroup(kind, value){
+ const types=['Capital Project','Small Project / OpEx','Transaction','Strategic Initiative / Process','Not categorized'];
+ let matches=visibleProjects().filter(p=>{
+  if(kind==='all')return true;
+  if(kind==='status')return value==='active'?(p.status==='active'||p.status==='ongoing'):p.status===value;
+  if(kind==='type')return typeOf(p)===types[value];
+  if(kind==='priority')return p.priority===value;
+  if(kind==='phase')return p.phase===PHASES[value] && typeOf(p)==='Capital Project';
+  return false;
+ }).sort((a,b)=>priorityRank(a)-priorityRank(b)||a.name.localeCompare(b.name));
+ const label=kind==='all'?'All projects':kind==='status'?(STATUSES.find(x=>x.key===value)?.label||value):kind==='type'?types[value]:kind==='phase'?PHASES[value]:(PRIORITIES.find(x=>x.key===value)?.label||value);
+ const overlay=document.createElement('div');overlay.className='project-group-overlay';overlay.onclick=e=>{if(e.target===overlay)overlay.remove()};
+ const pane=document.createElement('div');pane.className='project-group-dialog';
+ const header=document.createElement('div');header.className='group-head';
+ const heading=document.createElement('h2');heading.textContent=label+' ('+matches.length+')';
+ const close=document.createElement('button');close.textContent='Close ×';close.onclick=()=>overlay.remove();header.append(heading,close);pane.append(header);
+ if(!matches.length){const empty=document.createElement('p');empty.textContent='No projects in this group.';pane.append(empty)}
+ matches.forEach(p=>{const btn=document.createElement('button');btn.className='project-group-item';btn.textContent=p.name+'  ·  '+priorityInfo(p.priority).short+'  ·  '+(projectLocations(p).join(', ')||'No location');btn.onclick=()=>{overlay.remove();openPanel(p)};pane.append(btn)});
+ overlay.append(pane);document.body.append(overlay);
+}
+function renderSummary(){
+  const wrap = document.getElementById('gridWrap');
+  const shown = visibleProjects();
+  const baseForPhase = projects.filter(p=>!isProjectDimmedExceptPhase(p));
+
+  const statusCounts = {};
+  STATUSES.forEach(s=>statusCounts[s.key]=0);
+  shown.forEach(p=>{const k=p.status==='ongoing'?'active':(p.status||'active');statusCounts[k]=(statusCounts[k]||0)+1;});
+
+  const phaseCounts = {};
+  PHASES.forEach(ph=>phaseCounts[ph]=0);
+  baseForPhase.filter(p=>typeOf(p)==='Capital Project').forEach(p=>{ if(p.phase) phaseCounts[p.phase]=(phaseCounts[p.phase]||0)+1; });
+  const maxPhase = Math.max(1,...PHASES.map(ph=>phaseCounts[ph]||0));
+
+  const selectedStatus = STATUSES.find(s=>dimmedStatuses.size===STATUSES.length-1 && !dimmedStatuses.has(s.key));
+  const selectedPhase = CURRENT_PHASE_OPTIONS.find(ph=>dimmedPhases.size===CURRENT_PHASE_OPTIONS.length-1 && !dimmedPhases.has(ph));
+
+  const attention = shown
+    .filter(p=>p.status==='proposed' || p.status==='on-hold')
+    .sort((a,b)=>{
+      const order = {'on-hold':0,'proposed':1,'active':2};
+      return (order[a.status]??9)-(order[b.status]??9) || a.name.localeCompare(b.name);
+    })
+    .slice(0,8);
+
+  const totalAll = shown.length;
+
+  let html = `<div class="summary-shell">
+    <div class="summary-head">
+      <div>
+        <h2>Capital Projects Summary</h2>
+        
+      </div>
+      <div class="summary-count">${totalAll} project${totalAll===1?'':'s'} shown</div>
+    </div>
+
+    <div class="kpi-grid">
+      <button class="kpi-card" onclick="showProjectGroup('all')">
+        <div class="kpi-value">${totalAll}</div>
+        <div class="kpi-label">Projects in current view</div>
+      </button>
+      ${STATUSES.filter(s=>s.key!=='ongoing').map(s=>`
+        <button class="kpi-card ${selectedStatus&&selectedStatus.key===s.key?'active':''}" onclick="showProjectGroup('status','${s.key}')">
+          <div class="kpi-value">${statusCounts[s.key]||0}</div>
+          <div class="kpi-label"><span class="kpi-dot" style="background:${s.color}"></span>${s.label}</div>
+        </button>
+      `).join('')}
+    </div>
+
+    <div class="summary-card" style="margin-bottom:18px">
+      <h3>Projects by Type</h3>
+      <div class="kpi-grid" style="margin-bottom:0">${['Capital Project','Small Project / OpEx','Transaction','Strategic Initiative / Process','Not categorized'].map((t,i)=>`<button class="kpi-card" onclick="showProjectGroup('type',${i})"><div class="kpi-value">${shown.filter(p=>typeOf(p)===t).length}</div><div class="kpi-label">${t}</div></button>`).join('')}</div>
+    </div>
+    <div class="summary-card" style="margin-bottom:18px">
+      <h3>Firm Priority</h3>
+      
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px">
+        ${PRIORITIES.map(x=>{
+          const count=shown.filter(p=>p.priority===x.key).length;
+          return `<button onclick="showProjectGroup('priority','${x.key}')" style="cursor:pointer;text-align:left;border:1px solid var(--line-soft);border-left:5px solid ${x.color};border-radius:8px;padding:10px 12px;background:var(--bg);color:var(--ink)">
+            <div style="font-family:var(--font-head);font-size:21px;font-weight:600">${count}</div>
+            <div class="kpi-label">${x.label}</div>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h3>Capital Projects by Current Phase</h3>
+        
+        <div class="phase-pipeline">
+          ${PHASES.map((ph,i)=>{
+            const count = phaseCounts[ph]||0;
+            const width = Math.max(10, Math.round((count/maxPhase)*100));
+            const active = selectedPhase===ph;
+            return `<button class="phase-pipe-row ${active?'active':''}" onclick="showProjectGroup('phase',${i})">
+              <div class="phase-pipe-meta">
+                <span class="phase-pipe-name">${PHASE_SYMBOLS[i]} ${ph}</span>
+                <span class="phase-pipe-count">${count} project${count===1?'':'s'}</span>
+              </div>
+              <div class="phase-track"><div class="phase-fill" style="width:${width}%;background:${PHASE_COLORS[i]}">${count}</div></div>
+            </button>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <h3>Projects to Review</h3>
+        
+        <div class="focus-list">
+          ${attention.length ? attention.map(p=>`
+            <div class="focus-row" onclick="openPanel(projects.find(x=>x.id==='${p.id}'))">
+              <span class="status-pill" style="background:${statusColor(p)}">${statusInfo(p.status).label}</span>
+              <span class="focus-name">${p.name}</span>
+              <span class="focus-meta">${primaryLocation(p)||'—'}</span>
+            </div>
+          `).join('') : `<div class="table-empty" style="padding:26px 8px">No proposed or on-hold projects in this view.</div>`}
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  wrap.innerHTML = html;
+}
+
+
+function renderPriorityCapacity(){
+  const wrap = document.getElementById('gridWrap');
+  const shown = visibleProjects().slice().sort((a,b)=>
+    priorityRank(a)-priorityRank(b) ||
+    ((plannedStops(a)[0] ? keyIndex(plannedStops(a)[0].start) : 9e9) - (plannedStops(b)[0] ? keyIndex(plannedStops(b)[0].start) : 9e9)) ||
+    a.name.localeCompare(b.name)
+  );
+
+  const counts = {};
+  PRIORITIES.forEach(x=>counts[x.key]=0);
+  shown.forEach(p=>{ if(p.priority) counts[p.priority]=(counts[p.priority]||0)+1; });
+
+  const quarters = buildQuarterRange();
+  const miniStart = quarters[0].idx;
+  const miniEnd = quarters[quarters.length-1].idx + 1;
+  const miniSpan = Math.max(1, miniEnd-miniStart);
+
+  const rows = shown.map(p=>{
+    const stops = plannedStops(p);
+    let left=0, width=0;
+    if(stops.length){
+      const s = Math.max(miniStart,keyIndex(stops[0].start));
+      const last=stops[stops.length-1];
+      const e = Math.min(miniEnd,keyIndex(last.start)+Math.max(1,last.dur||1));
+      left = Math.max(0,((s-miniStart)/miniSpan)*100);
+      width = Math.max(2,((e-s)/miniSpan)*100);
+    }
+
+    const reasons = priorityReasonsForProject(p);
+    const reasonHtml = reasons.length
+      ? `<div class="reason-list">${reasons.slice(0,2).map(k=>`<span class="reason-chip">${PRIORITY_REASONS[k]}</span>`).join('')}${reasons.length>2?`<span class="reason-chip more">+${reasons.length-2}</span>`:''}</div>`
+      : `<span class="muted">—</span>`;
+
+    const phaseIdx = Math.max(0,phaseIndex(p.phase));
+    return `<tr onclick="openPanel(projects.find(x=>x.id==='${p.id}'))">
+      <td><strong>${p.name}</strong><div class="muted" style="font-size:10.5px;margin-top:2px">${projectLocations(p).join(', ')||'—'}</div></td>
+      <td><span class="priority-badge ${p.priority?'':'unset'}" style="${p.priority?`background:${priorityColor(p)}`:''}">${priorityInfo(p.priority).short}</span></td>
+      <td>${reasonHtml}</td>
+      <td><span class="phase-chip" style="background:${PHASE_COLORS[phaseIdx]}22;color:${PHASE_COLORS[phaseIdx]}">${PHASE_SYMBOLS[phaseIdx]} ${PHASE_SHORT[phaseIdx]}</span></td>
+      ${TEAM_DEFS.map(t=>`<td class="team-cell"><small>Current → Forecast</small><span style="color:${priorityColor(p)}">${demandMeter(teamDemandFor(p,t.key,'current'))}</span> <span class="muted">→</span> <span style="color:${phaseColorFor(p.phase)}">${demandMeter(teamDemandFor(p,t.key,'forecast'))}</span></td>`).join('')}
+      <td>
+        <div class="schedule-mini" title="${stops.length?`${projectDateRange(p).start} – ${projectDateRange(p).end}`:'No schedule set'}">
+          ${stops.length?`<div class="mini-bar" style="left:${left}%;width:${width}%;background:${phaseColorFor(p.phase)};border-left:4px solid ${priorityColor(p)}"></div>`:''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="capacity-shell">
+    <div class="capacity-head">
+      <div>
+        <h2>Priority &amp; Capacity</h2>
+        <p>Firm priority, why it matters, schedule overlap, and current vs forecast team demand.</p>
+      </div>
+      <div class="priority-key">
+        <span><i style="background:#C53A46"></i>P1 Critical</span>
+        <span><i style="background:#D77A2A"></i>P2 High</span>
+        <span><i style="background:#C7A33B"></i>P3 Medium</span>
+        <span><i style="background:#6B879F"></i>P4 Low</span>
+      </div>
+    </div>
+
+    <div class="capacity-summary">
+      ${PRIORITIES.map(x=>`<div class="priority-summary-card" onclick="setPriorityFocus('${x.key}')">
+        <div class="num" style="color:${x.color}">${counts[x.key]||0}</div>
+        <div class="kpi-label">${x.label}</div>
+      </div>`).join('')}
+    </div>
+
+    <div class="capacity-table-wrap">
+      <table class="capacity-table">
+        <thead>
+          <tr>
+            <th>Project</th><th>Priority</th><th>Why urgent / important</th><th>Phase</th>
+            <th>Workplace Design</th><th>Project Mgmt</th><th>Technical Facilities</th><th>FM / Move</th><th>Schedule</th>
+          </tr>
+        </thead>
+        <tbody>${rows || `<tr><td colspan="9"><div class="table-empty">No projects match the current filters.</div></td></tr>`}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function setPriorityFocus(key){
+  // Priority is intentionally a view emphasis, not a destructive filter.
+  const ranked = visibleProjects().slice().sort((a,b)=>{
+    const aHit = a.priority===key ? 0 : 1;
+    const bHit = b.priority===key ? 0 : 1;
+    return aHit-bHit || priorityRank(a)-priorityRank(b) || a.name.localeCompare(b.name);
+  });
+  const wrap = document.getElementById('gridWrap');
+  renderPriorityCapacity();
+  const first = ranked.find(p=>p.priority===key);
+  if(first){
+    setTimeout(()=>{
+      const rows=[...wrap.querySelectorAll('.capacity-table tbody tr')];
+      const target=rows.find(r=>r.textContent.includes(first.name));
+      if(target) target.scrollIntoView({behavior:'smooth',block:'center'});
+    },0);
+  }
+}
+
+
+function setTableSearch(value){
+  tableSearch = value || '';
+  renderProjectTable();
+}
+
+let projectTableSort='priority', projectTableAscending=true;
+function sortProjectTable(key){if(projectTableSort===key)projectTableAscending=!projectTableAscending;else {projectTableSort=key;projectTableAscending=true;}renderProjectTable();}
+function projectSortValue(p,key){
+ if(key==='priority')return priorityRank(p);
+ if(key==='name')return (p.name||'').toLowerCase();
+ if(key==='status')return statusInfo(p.status).label.toLowerCase();
+ if(key==='phase')return (p.phase||'').toLowerCase();
+ if(key==='reasons')return priorityReasonsForProject(p).map(x=>PRIORITY_REASONS[x]).join(', ').toLowerCase();
+ if(key==='location')return projectLocations(p).join(', ').toLowerCase();
+ if(key==='resources')return resourceNamesForProject(p).join(', ').toLowerCase();
+ if(key==='start'||key==='end')return projectDateRange(p)[key]||'';
+ return '';
+}
+function projectSortHeader(key,label){return `<th class="sort-header" onclick="sortProjectTable('${key}')" title="Sort by ${label}">${label}${projectTableSort===key?(projectTableAscending?' ▲':' ▼'):' ↕'}</th>`;}
+function renderProjectTable(){
+  const wrap = document.getElementById('gridWrap');
+  const q = tableSearch.trim().toLowerCase();
+
+  let shown = visibleProjects();
+  if(q){
+    shown = shown.filter(p=>{
+      const haystack = [
+        p.name,
+        statusInfo(p.status).label,
+        p.phase,
+        priorityInfo(p.priority).label,
+        ...priorityReasonsForProject(p).map(k=>PRIORITY_REASONS[k]),
+        p.priorityRationale||'',
+        ...projectLocations(p),
+        ...resourceNamesForProject(p),
+        p.notes||''
+      ].join(' ').toLowerCase();
+      return haystack.includes(q);
+    });
+  }
+
+  shown.sort((a,b)=>{
+    const av=projectSortValue(a,projectTableSort), bv=projectSortValue(b,projectTableSort);
+    const cmp=typeof av==='number'&&typeof bv==='number'?av-bv:String(av).localeCompare(String(bv),undefined,{numeric:true});
+    return (projectTableAscending?cmp:-cmp)||a.name.localeCompare(b.name);
+  });
+
+  const rows = shown.map(p=>{
+    const dates = projectDateRange(p);
+    const resources = resourceNamesForProject(p);
+    return `<tr onclick="openPanel(projects.find(x=>x.id==='${p.id}'))">
+      <td class="project-name-cell">${p.name}</td>
+      <td><span class="priority-badge ${p.priority?'':'unset'}" style="${p.priority?`background:${priorityColor(p)}`:''}">${priorityInfo(p.priority).short}</span></td>
+      <td><span class="status-pill" style="background:${statusColor(p)}">${statusInfo(p.status).label}</span></td>
+      <td><span class="phase-chip" style="background:${phaseColorFor(p.phase)}22;color:${phaseColorFor(p.phase)}">${p.phase || '—'}</span></td>
+      <td>${priorityReasonsForProject(p).length ? priorityReasonsForProject(p).slice(0,2).map(k=>`<span class="reason-chip">${PRIORITY_REASONS[k]}</span>`).join(' ') : ''}${p.priorityRationale ? `<div style="margin-top:4px;color:var(--ink-soft);font-size:11px">${p.priorityRationale}</div>` : ''}</td>
+      <td>${projectLocations(p).join(', ') || '—'}</td>
+      <td>${resources.join(', ') || '<span class="muted">Unassigned</span>'}</td>
+      <td>${dates.start}</td>
+      <td>${dates.end}</td>
+      <td><button class="table-link" onclick="event.stopPropagation();showProjectOnTimeline('${p.id}')">View timeline</button></td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="table-shell">
+    <div class="table-toolbar">
+      <div>
+        <h2>Project Table</h2>
+        <div class="summary-count">${shown.length} project${shown.length===1?'':'s'} shown</div>
+      </div>
+      <input type="search" value="${escAttr(tableSearch)}" oninput="setTableSearch(this.value)" placeholder="Search projects, locations, resources…">
+    </div>
+    <div class="project-table-wrap">
+      <table class="project-table">
+        <thead>
+          <tr>
+            ${projectSortHeader('name','Project')}
+            ${projectSortHeader('priority','Priority')}
+            ${projectSortHeader('status','Status')}
+            ${projectSortHeader('phase','Current Phase')}
+            ${projectSortHeader('reasons','Why Priority')}
+            ${projectSortHeader('location','Location(s)')}
+            ${projectSortHeader('resources','Resources')}
+            ${projectSortHeader('start','Start')}
+            ${projectSortHeader('end','End')}
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows || `<tr><td colspan="10"><div class="table-empty">No projects match the current filters.</div></td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function showProjectOnTimeline(id){
+  selectedProjectId = id;
+  pageMode = 'timeline';
+  viewMode = 'project';
+  document.getElementById('btnSummary').classList.remove('active');
+  document.getElementById('btnTable').classList.remove('active');
+  document.getElementById('btnCapacity').classList.remove('active');
+  ['Workload','Region','Dates'].forEach(id=>document.getElementById('btn'+id).classList.remove('active'));
+  document.getElementById('btnTimeline').classList.add('active');
+  document.getElementById('timelineToggle').classList.add('show');
+  document.getElementById('btnProject').classList.add('active');
+  document.getElementById('btnPhase').classList.remove('active');
+  render();
+
+  setTimeout(()=>{
+    const row = document.querySelector(`.proj-row[data-pid="${cssEscape(id)}"]`);
+    if(row) row.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 0);
+}
+
+
+
+// ================= PROJECT (swimlane) VIEW =================
+
+function renderProjectGrid(){
+
+  const wrap = document.getElementById('gridWrap');
+
+  const timelineProjects = visibleProjects();
+
+  if(timelineProjects.length===0){
+
+    wrap.innerHTML = `<div class="empty-state"><h3>No projects match these filters</h3><p>Adjust the filters on the left or choose Show all.</p></div>`;
+
+    return;
+
+  }
+
+  const quarters = buildQuarterRange();
+
+  const minIdx = quarters[0].idx;
+
+  const COL = 132; // must match --col-w
+
+  const gridW = quarters.length * COL;
+
+
+
+  // active count per quarter = any project whose overall span covers it
+
+  const quarterTotals = {};
+
+  timelineProjects.forEach(p=>{
+
+    const stops = plannedStops(p);
+
+    if(!stops.length) return;
+
+    const s = keyIndex(stops[0].start);
+
+    const last = stops[stops.length-1];
+
+    const e = keyIndex(last.start) + last.dur - 1;
+
+    quarters.forEach(q=>{ if(q.idx>=s && q.idx<=e) quarterTotals[q.key]=(quarterTotals[q.key]||0)+1; });
+
+  });
+
+
+
+  // header
+
+  let html = '<div class="grid-inner"><div class="qhead-row"><div class="corner"></div>';
+
+  quarters.forEach(q=>{
+
+    html += `<div class="qhead ${q.isNow?'now':''}"><div class="qlabel">${q.label}</div><div class="qcount">${quarterTotals[q.key]||0} active</div></div>`;
+
+  });
+
+  html += '</div><div class="proj-body">';
+
+
+
+  // sort projects: by location group, then by first start quarter
+
+  const sorted = [...timelineProjects].sort((a,b)=>{
+
+    const pr = priorityRank(a)-priorityRank(b);
+    if(pr!==0) return pr;
+
+    const ra = REGION_ORDER.indexOf(regionOf(primaryLocation(a))), rb = REGION_ORDER.indexOf(regionOf(primaryLocation(b)));
+
+    if(ra!==rb) return ra-rb;
+
+    if(primaryLocation(a)!==primaryLocation(b)) return primaryLocation(a)<primaryLocation(b)?-1:1;
+
+    const sa = plannedStops(a)[0], sb = plannedStops(b)[0];
+
+    const ia = sa?keyIndex(sa.start):9e9, ib = sb?keyIndex(sb.start):9e9;
+
+    return ia-ib;
+
+  });
+
+
+
+  const nowIdx = currentQuarter(); const nowQIdx = qIndex(nowIdx.q, nowIdx.y);
+
+
+
+  sorted.forEach(p=>{
+
+    const dim = '';
+
+    const sel = p.id===selectedProjectId ? 'selected' : '';
+
+    const col = locationColor(primaryLocation(p));
+
+    const stops = plannedStops(p);
+
+
+
+    // vertical grid lines + now line
+
+    let lines = '';
+
+    for(let i=1;i<quarters.length;i++){ lines += `<div class="vline" style="left:${i*COL}px"></div>`; }
+
+    const nowLeft = (nowQIdx - minIdx) * COL;
+
+    if(nowLeft>=0 && nowLeft<=gridW){ lines += `<div class="now-line" style="left:${nowLeft}px"></div>`; }
+
+
+
+    // segments
+
+    let segs = '';
+
+    stops.forEach((s,i)=>{
+
+      const isCurrent = s.phase===p.phase;
+
+      const isFuture = phaseIndex(s.phase) > phaseIndex(p.phase);
+
+      const pi = phaseIndex(s.phase);
+
+      const rawStart = keyIndex(s.start);
+      const rawEnd = rawStart + s.dur;
+      if(rawEnd <= minIdx) return;
+      const visibleStart = Math.max(rawStart, minIdx);
+      const left = (visibleStart-minIdx)*COL + 3;
+      const width = Math.max(0, (rawEnd-visibleStart)*COL - 6);
+
+      const bg = phaseColorFor(s.phase);
+
+      const txt = phaseTextColor(s.phase);
+
+      // future phases get a subtle diagonal hatch so "planned" reads at a glance
+
+      const hatch = isFuture
+
+        ? `<div class="seg-hatch" style="background:repeating-linear-gradient(45deg,rgba(255,255,255,0),rgba(255,255,255,0) 5px,rgba(255,255,255,0.35) 5px,rgba(255,255,255,0.35) 7px)"></div>`
+
+        : '';
+
+      const ring = isCurrent ? `box-shadow:0 0 0 2px ${priorityColor(p)};` : '';
+
+      const durLabel = s.dur>1 ? `<span class="seg-dur">${s.dur}q</span>` : '';
+
+      const label = `<span class="seg-symbol" aria-hidden="true">${PHASE_SYMBOLS[pi]}</span>${width > 72 ? `<span class="seg-name">${PHASE_SHORT[pi]}</span>${durLabel}` : ''}`;
+
+      segs += `<div class="seg-bar ${isFuture?'future':''}" data-pid="${p.id}" data-phase="${s.phase}" data-start="${s.start}" data-dur="${s.dur}" style="left:${left}px;width:${width}px;background:${bg};color:${txt};${ring}"
+
+                    title="${p.name} — ${priorityInfo(p.priority).label} — ${statusInfo(p.status).label} — ${s.phase}${isCurrent?' (current)':(isFuture?' (planned)':'')}, ${s.dur} quarter${s.dur>1?'s':''}">${hatch}${label}</div>`;
+
+
+
+      // connector to next stop (if there's a gap between them)
+
+      if(i < stops.length-1){
+
+        const next = stops[i+1];
+
+        const thisEnd = (keyIndex(s.start)-minIdx)*COL + s.dur*COL - 3;
+
+        const nextStart = (keyIndex(next.start)-minIdx)*COL + 3;
+
+        if(nextStart > thisEnd + 1){
+
+          segs += `<div class="seg-link" style="left:${thisEnd}px;width:${nextStart-thisEnd}px;background:${col}"></div>`;
+
+        }
+
+      }
+
+    });
+
+
+
+    html += `<div class="proj-row ${dim} ${sel}" data-pid="${p.id}">
+
+      <div class="proj-head" onclick="onProjClick('${p.id}')">
+
+        <span class="priority-badge ${p.priority?'':'unset'}" style="${p.priority?`background:${priorityColor(p)}`:''}" title="${priorityInfo(p.priority).label}">${priorityInfo(p.priority).short}</span>
+
+        <span class="meta" title="${projectLocations(p).join(', ')}${resourceNamesForProject(p).length ? ' • Resources: ' + resourceNamesForProject(p).join(', ') : ''}"><span class="pname">${p.name}</span><span class="ploc"><span class="status-dot" style="display:inline-block;background:${statusColor(p)};margin-right:5px"></span>${projectLocations(p).join(', ')}</span></span>
+
+      </div>
+
+      <div class="plane" style="width:${gridW}px" onclick="onProjClick('${p.id}')">
+
+        <div class="plane-bg"></div>
+
+        <div class="grid-lines">${lines}</div>
+
+        <div class="segments">${segs}</div>
+
+      </div>
+
+    </div>`;
+
+  });
+
+
+
+  html += '</div></div>';
+
+  wrap.innerHTML = html;
+  bindTimelineDragging(minIdx, COL);
+
+}
+
+function shiftProjectPhase(projectId, phase, quarterShift){
+  if(!quarterShift) return;
+  const p = projects.find(x=>x.id===projectId);
+  if(!p || !p.plan || !p.plan[phase] || !p.plan[phase].start) return;
+
+  const oldIdx = keyIndex(p.plan[phase].start);
+  const newIdx = Math.max(qIndex(4,2026), oldIdx + quarterShift);
+  const y = Math.floor(newIdx/4), q=(newIdx%4)+1;
+  p.plan[phase].start = qKey(q,y);
+
+  saveProjectRemote(p).then(()=>render()).catch(e=>{
+    console.error(e);
+    alert('Could not save the moved phase. Please try again.');
+    fetchFreshProjects().then(f=>{projects=f;render();});
+  });
+}
+
+function bindTimelineDragging(minIdx, COL){
+  document.querySelectorAll('.seg-bar[data-pid][data-phase]').forEach(bar=>{
+    let drag = null;
+
+    bar.addEventListener('pointerdown', e=>{
+      if(e.button !== 0 && e.pointerType === 'mouse') return;
+      drag = { startX:e.clientX, originalLeft:parseFloat(bar.style.left)||0, moved:false };
+      bar.setPointerCapture(e.pointerId);
+      bar.classList.add('dragging');
+      e.stopPropagation();
+    });
+
+    bar.addEventListener('pointermove', e=>{
+      if(!drag) return;
+      const dx = e.clientX - drag.startX;
+      if(Math.abs(dx)>3) drag.moved = true;
+      const quarters = Math.round(dx / COL);
+      bar.style.left = (drag.originalLeft + quarters*COL) + 'px';
+      e.stopPropagation();
+    });
+
+    const finish = e=>{
+      if(!drag) return;
+      const dx = e.clientX - drag.startX;
+      const quarters = Math.round(dx / COL);
+      const moved = drag.moved;
+      drag = null;
+      bar.classList.remove('dragging');
+      try{ bar.releasePointerCapture(e.pointerId); }catch(_){}
+      e.stopPropagation();
+
+      if(moved && quarters !== 0){
+        shiftProjectPhase(bar.dataset.pid, bar.dataset.phase, quarters);
+      } else {
+        render();
+      }
+    };
+
+    bar.addEventListener('pointerup', finish);
+    bar.addEventListener('pointercancel', finish);
+  });
+}
+
+function onProjClick(id){
+
+  if(selectedProjectId===id){ openPanel(projects.find(p=>p.id===id)); return; }
+
+  selectedProjectId = id;
+
+  render();
+
+}
+
+
+
+// ================= PHASE (original) VIEW =================
+
+function renderPhaseGrid(){
+
+  const wrap = document.getElementById('gridWrap');
+
+  const timelineProjects = visibleProjects();
+
+  if(timelineProjects.length===0){
+
+    wrap.innerHTML = `<div class="empty-state"><h3>No projects match these filters</h3><p>Adjust the filters on the left or choose Show all.</p></div>`;
+
+    return;
+
+  }
+
+  const quarters = buildQuarterRange();
+
+  const minIdx = quarters[0].idx;
+
+  const COL = 132;
+
+
+
+  const quarterTotals = {};
+
+  timelineProjects.forEach(p=>{
+
+    const entry = p.plan[p.phase];
+
+    if(!entry || !entry.start) return;
+
+    const s = keyIndex(entry.start), e = s + Math.max(1,entry.dur||1) - 1;
+
+    quarters.forEach(q=>{ if(q.idx>=s && q.idx<=e) quarterTotals[q.key]=(quarterTotals[q.key]||0)+1; });
+
+  });
+
+  const phaseTotals = {};
+
+  timelineProjects.forEach(p=>{ phaseTotals[p.phase] = (phaseTotals[p.phase]||0)+1; });
+
+
+
+  let html = '<div class="grid-inner"><div class="qhead-row"><div class="corner"></div>';
+
+  quarters.forEach(q=>{
+
+    html += `<div class="qhead ${q.isNow?'now':''}"><div class="qlabel">${q.label}</div><div class="qcount">${quarterTotals[q.key]||0} active</div></div>`;
+
+  });
+
+  html += '</div><div class="phase-body">';
+
+
+
+  PHASES.forEach(phase=>{
+
+    const bars = [];
+
+    timelineProjects.forEach(p=>{
+
+      const entry = p.plan[phase];
+
+      if(!entry || !entry.start) return;
+
+      const s = keyIndex(entry.start);
+
+      if(s == null) return;
+
+      const dur = Math.max(1, entry.dur||1);
+
+      bars.push({ p, s, e: s+dur-1, dur, isCurrent: phase===p.phase });
+
+    });
+
+    bars.sort((a,b)=> a.s-b.s || (a.p.name<b.p.name?-1:1));
+
+    const laneEnds = [];
+
+    bars.forEach(bar=>{
+
+      let lane = laneEnds.findIndex(end => bar.s > end);
+
+      if(lane === -1){ lane = laneEnds.length; laneEnds.push(bar.e); }
+
+      else { laneEnds[lane] = bar.e; }
+
+      bar.lane = lane;
+
+    });
+
+    const laneCount = Math.max(1, laneEnds.length);
+
+    const BAR_H = 40, GAP = 6, PAD = 4;
+
+    const rowH = laneCount * BAR_H + (laneCount-1) * GAP + PAD*2;
+
+
+
+    html += `<div class="phase-row" data-phase="${phase}" style="--this-row-h:${rowH}px">
+
+      <div class="phead"><div class="plabel">${phase}</div><div class="ptotal">${phaseTotals[phase]||0} in phase now</div></div>
+
+      <div class="lane"><div class="lane-cells">`;
+
+    quarters.forEach(()=>{ html += `<div class="lane-cell" style="height:${rowH}px"></div>`; });
+
+    html += '</div><div class="bars-layer">';
+
+    bars.forEach(bar=>{
+
+      const p = bar.p;
+
+      const isCurrent = bar.isCurrent;
+
+      const dim = false;
+
+      const sel = p.id===selectedProjectId ? 'selected' : '';
+
+      const faded = dim ? 'faded' : '';
+
+      const ghost = isCurrent ? '' : 'ghost';
+
+      if(bar.e < minIdx) return;
+      const visibleStart = Math.max(bar.s, minIdx);
+      const left = (visibleStart - minIdx) * COL + 5;
+      const width = Math.max(0, (bar.e - visibleStart + 1) * COL - 10);
+
+      const top = PAD + bar.lane * (BAR_H + GAP);
+
+      const phaseCol = phaseColorFor(phase);
+      const priorityCol = priorityColor(p);
+      const colorStyle = isCurrent
+        ? `background:${phaseCol};color:${phaseTextColor(phase)};box-shadow:inset 4px 0 0 ${priorityCol};`
+        : `color:${phaseCol};border-color:${phaseCol};box-shadow:inset 4px 0 0 ${priorityCol};`;
+
+      const durLabel = bar.dur>1 ? `<span class="bar-dur">${bar.dur}q</span>` : '';
+
+      const kind = isCurrent ? 'current' : 'anticipated';
+
+      html += `<div class="bar ${ghost} ${sel} ${faded}" data-pid="${p.id}" style="left:${left}px;width:${width}px;top:${top}px;height:${BAR_H}px;${colorStyle}"
+
+                  title="${p.name} — ${priorityInfo(p.priority).label} — ${statusInfo(p.status).label} — ${projectLocations(p).join(', ')} (${kind}, ${bar.dur} quarter${bar.dur>1?'s':''})"
+
+                  onclick="onBarClick('${p.id}', event)">${p.name}${durLabel}</div>`;
+
+    });
+
+    html += '</div></div></div>';
+
+  });
+
+
+
+  html += '</div></div><svg class="flow-overlay" id="flowSvg"></svg>';
+
+  wrap.innerHTML = html;
+
+  drawFlowLine(minIdx, COL);
+
+}
+
+function onBarClick(id, evt){
+
+  evt.stopPropagation();
+
+  if(selectedProjectId===id){ openPanel(projects.find(p=>p.id===id)); return; }
+
+  selectedProjectId = id;
+
+  render();
+
+}
+
+function drawFlowLine(minIdx, COL){
+
+  const svg = document.getElementById('flowSvg');
+
+  const wrap = document.getElementById('gridWrap');
+
+  const inner = document.querySelector('.grid-inner');
+
+  if(!svg || !inner) return;
+
+  svg.setAttribute('width', inner.scrollWidth);
+
+  svg.setAttribute('height', inner.scrollHeight);
+
+  svg.style.width = inner.scrollWidth+'px';
+
+  svg.style.height = inner.scrollHeight+'px';
+
+  if(!selectedProjectId){ svg.innerHTML=''; return; }
+
+  const p = projects.find(p=>p.id===selectedProjectId);
+
+  if(!p){ svg.innerHTML=''; return; }
+
+  const stops = plannedStops(p);
+
+  if(stops.length < 2){ svg.innerHTML=''; return; }
+
+  const wrapRect = wrap.getBoundingClientRect();
+
+  const color = priorityColor(p);
+
+  const nodes = [];
+
+  stops.forEach((s)=>{
+
+    const barEl = document.querySelector(`.phase-row[data-phase="${cssEscape(s.phase)}"] .bar[data-pid="${cssEscape(p.id)}"]`);
+
+    if(!barEl) return;
+
+    const barRect = barEl.getBoundingClientRect();
+
+    const yMid = barRect.top - wrapRect.top + barRect.height/2;
+
+    const si = keyIndex(s.start);
+
+    const left = (si - minIdx) * COL + 5;
+
+    const width = s.dur * COL - 10;
+
+    nodes.push({ startX: left, endX: left+width, y: yMid });
+
+  });
+
+  if(nodes.length < 2){ svg.innerHTML=''; return; }
+
+  let paths = '';
+
+  for(let i=0;i<nodes.length-1;i++){
+
+    const a = nodes[i], b = nodes[i+1];
+
+    const ax = a.endX, ay = a.y, bx = b.startX, by = b.y;
+
+    const midY = (ay+by)/2;
+
+    paths += `<path d="M ${ax} ${ay} C ${ax} ${midY}, ${bx} ${midY}, ${bx} ${by}" stroke="${color}" stroke-width="2.5" stroke-dasharray="1,7" stroke-linecap="round" fill="none" marker-end="url(#arrowhead)"/>`;
+
+  }
+
+  let dots = `<circle cx="${nodes[0].startX}" cy="${nodes[0].y}" r="4.5" fill="${color}"/>`;
+
+  svg.innerHTML = `
+
+    <defs><marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="${color}"/></marker></defs>
+
+    ${paths}${dots}`;
+
+}
+
+function cssEscape(s){ return s.replace(/"/g,'\\\\"'); }
+
+
+
+document.addEventListener('click', (e)=>{
+
+  if(viewMode==='phase' && !e.target.closest('.bar')){
+
+    if(selectedProjectId){ selectedProjectId=null; render(); }
+
+  }
+
+});
+
+window.addEventListener('resize', ()=>{ if(viewMode==='phase') render(); });
+
+
+
+// ---------- init ----------
+
+populateSelects();
+
+loadProjects().then(()=>loadCommitments());
+
+setInterval(async ()=>{
+
+  if(document.getElementById('panel').classList.contains('open')) return;
+
+  if(!supabaseReady()) return;
+
+  try{
+
+    const fresh = await fetchFreshProjects();
+
+    if(JSON.stringify(fresh) !== JSON.stringify(projects)){ projects = fresh; render(); }
+    if(!document.getElementById('commitmentEditor').offsetParent) await loadCommitments();
+
+  }catch(e){ console.error(e); }
+
+}, 4000);
+
+</script>
+
+</body>
+
+</html>
